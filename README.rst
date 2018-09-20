@@ -78,3 +78,54 @@ Examples:
   $ cmake -DFOGLAMP_INSTALL=/home/source/develop/FogLAMP ..
 
   $ cmake -DFOGLAMP_INSTALL=/usr/local/foglamp ..
+
+******************************
+Packaging for 'opcua' south
+******************************
+
+This repo contains the scripts used to create a foglamp-south-opcua Debian package.
+
+The make_deb script
+===================
+
+Run the make_deb command after compiling the plugin:
+
+.. code-block:: console
+
+  $ ./make_deb help
+  make_deb {x86|arm} [help|clean|cleanall]
+  This script is used to create the Debian package of FoglAMP C++ 'opcua' south plugin
+  Arguments:
+   help     - Display this help text
+   x86      - Build an x86_64 package
+   arm      - Build an armv7l package
+   clean    - Remove all the old versions saved in format .XXXX
+   cleanall - Remove all the versions, including the last one
+  $
+
+Building a Package
+==================
+
+Finally, run the ``make_deb`` command:
+
+.. code-block:: console
+
+   $ ./make_deb
+   The package root directory is   : /home/ubuntu/source/foglamp-south-opcua
+   The FogLAMP required version    : >=1.4
+   The package will be built in    : /home/ubuntu/source/foglamp-south-opcua/packages/build
+   The architecture is set as      : x86_64
+   The package name is             : foglamp-south-opcua-1.0.0-x86_64
+
+   Populating the package and updating version file...Done.
+   Building the new package...
+   dpkg-deb: building package 'foglamp-south-opcua' in 'foglamp-south-opcua-1.0.0-x86_64.deb'.
+   Building Complete.
+   $
+
+Cleaning the Package Folder
+===========================
+
+Use the ``clean`` option to remove all the old packages and the files used to make the package.
+
+Use the ``cleanall`` option to remove all the packages and the files used to make the package.
