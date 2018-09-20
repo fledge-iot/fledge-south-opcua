@@ -1,0 +1,65 @@
+#!/bin/sh
+
+##--------------------------------------------------------------------
+## Copyright (c) 2018 Dianomic Systems
+##
+## Licensed under the Apache License, Version 2.0 (the "License");
+## you may not use this file except in compliance with the License.
+## You may obtain a copy of the License at
+##
+##     http://www.apache.org/licenses/LICENSE-2.0
+##
+## Unless required by applicable law or agreed to in writing, software
+## distributed under the License is distributed on an "AS IS" BASIS,
+## WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+## See the License for the specific language governing permissions and
+## limitations under the License.
+##--------------------------------------------------------------------
+
+##--------------------------------------------------------------------
+##
+## @preinst DEBIAN/preinst
+## This script is used to execute pre installation tasks.
+##
+## Author: Massimiliano Pinto
+##
+##--------------------------------------------------------------------
+
+set -e
+
+PKG_NAME="foglamp-south-opcua"
+
+get_foglamp_script () {
+    foglamp_script=$(dpkg -L foglamp | grep 'foglamp/bin/foglamp$')
+    echo $foglamp_script
+}
+
+is_foglamp_running () {
+    set +e
+    foglamp_script=$(get_foglamp_script)
+    foglamp_status_output=$($foglamp_script status 2>&1 | grep 'FogLAMP Uptime')
+    rc=$((!$?))
+    echo $rc
+    set -e
+}
+
+is_plugin_installed () {
+    set +e
+    current_files_all=$(dpkg -L ${PKG_NAME} | grep 'foglamp/plugins/south/opcua/lib*')
+    rc=$((!$?))
+    echo $rc
+    set -e
+}
+
+# main
+IS_PLUGIN_INSTALLED=$(is_plugin_installed)
+if [ "$IS_PLUGIN_INSTALLED" -eq "1" ]; then
+    echo "FogLAMP C++ plugin ${PKG_NAME} is already installed: this is an upgrade/downgrade."
+    # exit if foglamp is running
+    IS_FOGLAMP_RUNNING=$(is_foglamp_running)
+    if [ "$IS_FOGLAMP_RUNNING" -eq "1" ]
+    then
+        echo "*** ERROR. FogLAMP is currently running. Stop FogLAMP and try again. ***"
+        exit 1
+    fi
+fi
