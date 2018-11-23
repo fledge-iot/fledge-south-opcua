@@ -12,10 +12,26 @@ must clone the freeopcua repository in your home directory.
 .. code-block:: console
 
   $ git clone https://github.com/FreeOpcUa/freeopcua.git
+  $ cd freeopcua
   $ mkdir build
+
+Edit the file CMakeFiles.txt and find the line
+
+
+.. code-block:: console
+
+  option(SSL_SUPPORT_MBEDTLS "Support rsa-oaep password encryption using mbedtls library " ON)
+
+and set it to OFF
+
+.. code-block:: console
+
   $ cd build
   $ cmake ..
   $ make
+
+The freeopcua library requires boost libraries that are not available in packaged form for the
+Raspbery Pi. Therefore it can not be built there without first building these boost libraries.
 
 Build
 -----
