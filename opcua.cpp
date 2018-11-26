@@ -40,12 +40,31 @@ OPCUA::setAssetName(const std::string& asset)
 }
 
 /**
+ * Clear down the subscriptions ahead of reconfiguration
+ */
+void
+OPCUA::clearSubscription()
+{
+	m_subscriptions.clear();
+}
+
+/**
  * Add a subscription parent node to the list
  */
 void
 OPCUA::addSubscription(const string& parent)
 {
 	m_subscriptions.push_back(parent);
+}
+
+/**
+ * Restart the OPCUA connection
+ */
+void
+OPCUA::restart()
+{
+	stop();
+	start();
 }
 
 /**
@@ -64,7 +83,7 @@ OPCUA::start()
 	OpcUa::Node root = m_client->GetRootNode();
 
 	m_subClient = new OpcUaClient(this);
-	OpcUa::Subscription::SharedPtr sub = m_client->CreateSubscription(100, *m_subClient);
+	m_sub = m_client->CreateSubscription(100, *m_subClient);
 
 	/* For every parent object we subscribe to fidn it's children and
 	 * add an OPC UA subscription for data changed events.
@@ -78,9 +97,18 @@ OPCUA::start()
 			string childName = child.GetId().GetStringIdentifier();
 			vector<string> childpath({"Objects", parent, childName});
 			OpcUa::Node subvar = root.GetChild(childpath);
-			sub->SubscribeDataChange(subvar);
+			m_sub->SubscribeDataChange(subvar);
 		}
 	}
+}
+
+/**
+ * Stop all subscriptions and disconnect from the OPCUA server
+ */
+void
+OPCUA::stop()
+{
+	m_client->Disconnect();
 }
 
 /**
@@ -91,7 +119,7 @@ OPCUA::start()
  */
 void OPCUA::ingest(vector<Datapoint *>	points)
 {
-string asset = m_asset + " " + points[0]->getName();
+string asset = m_asset + points[0]->getName();
 
 	(*m_ingest)(m_data, Reading(asset, points));
 }
