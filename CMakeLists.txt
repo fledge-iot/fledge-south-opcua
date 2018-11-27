@@ -37,6 +37,9 @@ if (NOT FOGLAMP_FOUND)
 endif()
 # On success, FOGLAMP_INCLUDE_DIRS and FOGLAMP_LIB_DIRS variables are set 
 
+# Find the freeopcua files
+set(OPCUADIR $ENV{FREEOPCUA})
+
 # Add ./include
 include_directories(include)
 # Add FogLAMP include dir(s)
@@ -44,7 +47,11 @@ include_directories(${FOGLAMP_INCLUDE_DIRS})
 
 # Add other include paths
 # We assume the 'freeopcua' header files are available here: 
-include_directories(~/freeopcua/include)
+if (NOT EXISTS "${OPCUADIR}/include")
+	message(FATAL_ERROR "OPCUADIR does not apear to be pointing at a valid OPCUA source tree")
+	return()
+endif()
+include_directories(${OPCUADIR}/include)
 
 # Add FogLAMP lib path
 link_directories(${FOGLAMP_LIB_DIRS})
@@ -62,7 +69,25 @@ target_link_libraries(${PROJECT_NAME} ${NEEDED_FOGLAMP_LIBS})
 # Add additional libraries
 target_link_libraries(${PROJECT_NAME} -lpthread -ldl)
 # Add freeopcua libraries
-target_link_libraries(${PROJECT_NAME} -lopcuaprotocol -lopcuacore -lopcuaclient)
+find_library(OPCUAPROTOCOL opcuaprotocol ${OPCUADIR}/build/lib)
+if (NOT OPCUAPROTOCOL)
+	message(FATAL_ERROR "Free OPCUA library opcuaprotocol not found.\n"
+			"Please build freeopcua and set the environment variable FREEOPCUA to root of OPCUA")
+	return()
+endif()
+find_library(OPCUACORE opcuacore ${OPCUADIR}/build/lib)
+if (NOT OPCUACORE)
+	message(FATAL_ERROR "Free OPCUA library opcuacore not found.\n"
+			"Please build freeopcua and set the environment variable FREEOPCUA to root of OPCUA")
+	return()
+endif()
+find_library(OPCUACLIENT opcuaclient ${OPCUADIR}/build/lib)
+if (NOT OPCUACLIENT)
+	message(FATAL_ERROR "Free OPCUA library opcuaclient not found.\n"
+			"Please build freeopcua and set the environment variable FREEOPCUA to root of OPCUA")
+	return()
+endif()
+target_link_libraries(${PROJECT_NAME} ${OPCUAPROTOCOL} ${OPCUACORE} ${OPCUACLIENT})
 
 # Set the build version 
 set_target_properties(${PROJECT_NAME} PROPERTIES SOVERSION 1)
