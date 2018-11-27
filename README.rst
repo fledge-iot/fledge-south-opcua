@@ -6,16 +6,39 @@ A simple asynchronous OPC UA plugin that registers for change events on OPC UA o
 
 NOTE:
 
-Thia plugin assumes the freeopcua is available at a fixed location in the file system. To build you
-must clone the freeopcua repository in your home directory.
+This plugin assumes the freeopcua is available at a specified location in the file system. To build you
+must clone the freeopcua repository to a directory of your choice.
 
 .. code-block:: console
 
   $ git clone https://github.com/FreeOpcUa/freeopcua.git
+  $ cd freeopcua
+  $ export FREEOPCUA=`pwd`
   $ mkdir build
+
+Edit the OPCUA CMakeFiles.txt file and find the line
+
+
+.. code-block:: console
+
+  option(SSL_SUPPORT_MBEDTLS "Support rsa-oaep password encryption using mbedtls library " ON)
+
+and set it to OFF.
+
+.. code-block:: console
+
+  option(SSL_SUPPORT_MBEDTLS "Support rsa-oaep password encryption using mbedtls library " OFF)
+
+
+.. code-block:: console
+
   $ cd build
   $ cmake ..
   $ make
+
+The freeopcua library requires boost libraries that are not available in packaged form for the
+Raspbery Pi. Therefore it can not be built for the Raspbery Pi without first building these boost
+libraries.
 
 Build
 -----
