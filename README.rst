@@ -13,7 +13,7 @@ must clone the freeopcua repository to a directory of your choice.
 
   $ git clone https://github.com/FreeOpcUa/freeopcua.git
   $ cd freeopcua
-  $ export OPCUADIR=`pwd`
+  $ export FREEOPCUA=`pwd`
   $ mkdir build
 
 Edit the OPCUA CMakeFiles.txt file and find the line
