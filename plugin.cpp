@@ -17,6 +17,7 @@
 #include <plugin_exception.h>
 #include <config_category.h>
 #include <rapidjson/document.h>
+#include <version.h>
 
 typedef void (*INGEST_CB)(void *, Reading);
 
@@ -45,7 +46,7 @@ extern "C" {
  */
 static PLUGIN_INFORMATION info = {
 	"upcua",                  // Name
-	"1.0.0",                  // Version
+	VERSION,                  // Version
 	SP_ASYNC, 		  // Flags
 	PLUGIN_TYPE_SOUTH,        // Type
 	"1.0.0",                  // Interface version
