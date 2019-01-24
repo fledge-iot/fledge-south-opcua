@@ -14,6 +14,17 @@ project(opcua)
 
 set(CMAKE_CXX_FLAGS "-std=c++11 -O3")
 
+# Generation version header file
+set_source_files_properties(version.h PROPERTIES GENERATED TRUE)
+add_custom_command(
+  OUTPUT version.h
+  DEPENDS ${CMAKE_SOURCE_DIR}/VERSION
+  COMMAND ${CMAKE_SOURCE_DIR}/mkversion ${CMAKE_SOURCE_DIR}
+  COMMENT "Generating version header"
+  VERBATIM
+)
+include_directories(${CMAKE_BINARY_DIR})
+
 # Set plugin type (south, north, filter)
 set(PLUGIN_TYPE "south")
 
@@ -61,7 +72,7 @@ link_directories(${FOGLAMP_LIB_DIRS})
 link_directories(~/freeopcua/build/lib)
 
 # Create shared library
-add_library(${PROJECT_NAME} SHARED ${SOURCES})
+add_library(${PROJECT_NAME} SHARED ${SOURCES} version.h)
 
 # Add FogLAMP library names
 target_link_libraries(${PROJECT_NAME} ${NEEDED_FOGLAMP_LIBS})
