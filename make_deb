@@ -74,8 +74,8 @@ else
   exit 1
 fi
 
-# Get plugin version from plugin.cpp, grep comment: // Version
-plugin_version=`cat ${GIT_ROOT}/plugin.cpp | grep 'Version' | head -1 | tr -d ' ' | awk -F',' '{print $1}' | sed -e 's/\"//g' | sed -e 's/[[:space:]]\+//g'`
+# Get plugin version from VERSION
+plugin_version=`cat ${GIT_ROOT}/VERSION`
 # Get FogLAMP version dependency from foglamp_version file
 foglamp_version=`cat ${GIT_ROOT}/foglamp.version | tr -d ' ' | grep 'foglamp_version' | head -1 | sed -e 's/\(.*\)version\(.*\)/\2/g'`
 BUILD_ROOT="${GIT_ROOT}/packages/build"
