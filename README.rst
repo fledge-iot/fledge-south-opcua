@@ -29,6 +29,23 @@ and set it to OFF.
 
   option(SSL_SUPPORT_MBEDTLS "Support rsa-oaep password encryption using mbedtls library " OFF)
 
+.. code-block:: console
+
+The build options for the OPCUA libraries must be changed to create static libraries. To do this
+find the occurances of the add_library directive for opcuaclient, opcuacode and opcuaprotocol
+and add the option STATIC to it
+
+
+.. code-block:: console
+
+  add_library(opcuaclient STATIC
+  ...
+
+  add_library(opcuacore STATIC
+  ...
+
+  add_library(opcuaprotocol STATIC
+  ...
 
 .. code-block:: console
 
