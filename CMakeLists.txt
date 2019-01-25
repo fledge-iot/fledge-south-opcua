@@ -98,7 +98,7 @@ if (NOT OPCUACLIENT)
 			"Please build freeopcua and set the environment variable FREEOPCUA to root of OPCUA")
 	return()
 endif()
-target_link_libraries(${PROJECT_NAME} ${OPCUAPROTOCOL} ${OPCUACORE} ${OPCUACLIENT})
+target_link_libraries(${PROJECT_NAME} ${OPCUAPROTOCOL} ${OPCUACLIENT} ${OPCUACORE})
 
 # Set the build version 
 set_target_properties(${PROJECT_NAME} PROPERTIES SOVERSION 1)
