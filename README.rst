@@ -32,7 +32,7 @@ and set it to OFF.
 .. code-block:: console
 
 The build options for the OPCUA libraries must be changed to create static libraries. To do this
-find the occurances of the add_library directive for opcuaclient, opcuacode and opcuaprotocol
+find the occurences of the add_library directive for opcuaclient, opcuacode and opcuaprotocol
 and add the option STATIC to it
 
 
