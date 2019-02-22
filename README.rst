@@ -6,16 +6,56 @@ A simple asynchronous OPC UA plugin that registers for change events on OPC UA o
 
 NOTE:
 
-Thia plugin assumes the freeopcua is available at a fixed location in the file system. To build you
-must clone the freeopcua repository in your home directory.
+This plugin assumes the freeopcua is available at a specified location in the file system. To build you
+must clone the freeopcua repository to a directory of your choice.
 
 .. code-block:: console
 
   $ git clone https://github.com/FreeOpcUa/freeopcua.git
+  $ cd freeopcua
+  $ export FREEOPCUA=`pwd`
   $ mkdir build
+
+Edit the OPCUA CMakeFiles.txt file and find the line
+
+
+.. code-block:: console
+
+  option(SSL_SUPPORT_MBEDTLS "Support rsa-oaep password encryption using mbedtls library " ON)
+
+and set it to OFF.
+
+.. code-block:: console
+
+  option(SSL_SUPPORT_MBEDTLS "Support rsa-oaep password encryption using mbedtls library " OFF)
+
+.. code-block:: console
+
+The build options for the OPCUA libraries must be changed to create static libraries. To do this
+find the occurences of the add_library directive for opcuaclient, opcuacode and opcuaprotocol
+and add the option STATIC to it
+
+
+.. code-block:: console
+
+  add_library(opcuaclient STATIC
+  ...
+
+  add_library(opcuacore STATIC
+  ...
+
+  add_library(opcuaprotocol STATIC
+  ...
+
+.. code-block:: console
+
   $ cd build
   $ cmake ..
   $ make
+
+The freeopcua library requires boost libraries that are not available in packaged form for the
+Raspbery Pi. Therefore it can not be built for the Raspbery Pi without first building these boost
+libraries.
 
 Build
 -----
@@ -88,17 +128,15 @@ This repo contains the scripts used to create a foglamp-south-opcua Debian packa
 The make_deb script
 ===================
 
-Run the make_deb command after compiling the plugin:
+Run the make_deb command:
 
 .. code-block:: console
 
   $ ./make_deb help
-  make_deb {x86|arm} [help|clean|cleanall]
+  make_deb [help|clean|cleanall]
   This script is used to create the Debian package of FoglAMP C++ 'opcua' south plugin
   Arguments:
    help     - Display this help text
-   x86      - Build an x86_64 package
-   arm      - Build an armv7l package
    clean    - Remove all the old versions saved in format .XXXX
    cleanall - Remove all the versions, including the last one
   $

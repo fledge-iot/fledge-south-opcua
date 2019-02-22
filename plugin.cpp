@@ -17,6 +17,7 @@
 #include <plugin_exception.h>
 #include <config_category.h>
 #include <rapidjson/document.h>
+#include <version.h>
 
 typedef void (*INGEST_CB)(void *, Reading);
 
@@ -26,13 +27,19 @@ using namespace std;
  * Default configuration
  */
 #define CONFIG	"{\"plugin\" : { \"description\" : \"Simple OPC UA data change plugin\", " \
-			"\"type\" : \"string\", \"default\" : \"opcua\" }, " \
-		"\"asset\" : { \"description\" : \"Asset name\", "\
-			"\"type\" : \"string\", \"default\" : \"opcua\" }, " \
-		"\"url\" : { \"description\" : \"URL of the OPC UA Server\", "\
-			"\"type\" : \"string\", \"default\" : \"opc.tcp://mark.local:53530/OPCUA/SimulationServer\" }, " \
+			"\"type\" : \"string\", \"default\" : \"opcua\", " \
+			"\"readonly\" : \"true\" }, " \
+		"\"asset\" : { \"description\" : \"Asset name\", " \
+			"\"type\" : \"string\", \"default\" : \"opcua\", " \
+			"\"displayName\" : \"Asset Name\", \"order\" : \"1\" }, " \
+		"\"url\" : { \"description\" : \"URL of the OPC UA Server\", " \
+			"\"type\" : \"string\", \"default\" : " \
+			"\"opc.tcp://mark.local:53530/OPCUA/SimulationServer\", " \
+			"\"displayName\" : \"OPCUA Server URL\", \"order\" : \"2\"}, " \
 		"\"subscription\" : { \"description\" : \"Variable to observe changes in\", " \
-			"\"type\" : \"JSON\", \"default\" : \"{ \\\"subscriptions\\\" : [  \\\"5:Simulation\\\" ] }\" } " \
+			"\"type\" : \"JSON\", \"default\" : " \
+			"\"{ \\\"subscriptions\\\" : [  \\\"5:Simulation\\\" ] }\", " \
+			"\"displayName\" : \"OPCUA Object Subscriptions\", \"order\" : \"3\" } " \
 			"}"
 
 /**
@@ -45,7 +52,7 @@ extern "C" {
  */
 static PLUGIN_INFORMATION info = {
 	"upcua",                  // Name
-	"1.0.0",                  // Version
+	VERSION,                  // Version
 	SP_ASYNC, 		  // Flags
 	PLUGIN_TYPE_SOUTH,        // Type
 	"1.0.0",                  // Interface version
@@ -57,6 +64,7 @@ static PLUGIN_INFORMATION info = {
  */
 PLUGIN_INFORMATION *plugin_info()
 {
+	Logger::getLogger()->error("Config is %s", info.config);
 	return &info;
 }
 
