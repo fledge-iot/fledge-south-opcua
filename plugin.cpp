@@ -160,10 +160,51 @@ OPCUA *opcua = (OPCUA *)handle;
 /**
  * Reconfigure the plugin
  *
- * TODO Dynamic reconfiguration
  */
 void plugin_reconfigure(PLUGIN_HANDLE *handle, string& newConfig)
 {
+ConfigCategory	config("new", newConfig);
+OPCUA		*opcua = (OPCUA *)handle;
+
+	Logger::getLogger()->info("UPC UA plugin reconfigure");
+	if (config.itemExists("url"))
+	{
+		string url = config.getValue("url");
+		opcua->newURL(url);
+	}
+
+	if (config.itemExists("asset"))
+	{
+		opcua->setAssetName(config.getValue("asset"));
+	}
+
+	if (config.itemExists("subscription"))
+	{
+		// Now add the subscription data
+		string map = config.getValue("subscription");
+		rapidjson::Document doc;
+		doc.Parse(map.c_str());
+		if (!doc.HasParseError())
+		{
+			opcua->clearSubscription();
+			if (doc.HasMember("subscriptions") && doc["subscriptions"].IsArray())
+			{
+				const rapidjson::Value& subs = doc["subscriptions"];
+				for (rapidjson::SizeType i = 0; i < subs.Size(); i++)
+				{
+					opcua->addSubscription(subs[i].GetString());
+				}
+			}
+			else
+			{
+				Logger::getLogger()->fatal("UPC UA plugin is missing a subscriptions array");
+				throw exception();
+			}
+		}
+	}
+
+	Logger::getLogger()->info("UPC UA plugin restart after reconfigure");
+	opcua->restart();
 }
 
 /**
