@@ -64,7 +64,7 @@ project in your home directory.
 
   requirements.sh
 
-If you require to place the freeopcua code elsewhere you may pass the requirements.sh script anrargument
+If you require to place the freeopcua code elsewhere you may pass the requirements.sh script an argument
 of a directory name to use.
 
 .. code-block:: console
