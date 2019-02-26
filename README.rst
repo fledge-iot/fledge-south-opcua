@@ -57,6 +57,20 @@ The freeopcua library requires boost libraries that are not available in package
 Raspbery Pi. Therefore it can not be built for the Raspbery Pi without first building these boost
 libraries.
 
+Alternatively run the script requirements.sh to automate this and place a copy of the freeopcua
+project in your home directory.
+
+.. code-block:: console
+
+  requirements.sh
+
+If you require to place the freeopcua code elsewhere you may pass the requirements.sh script anrargument
+of a directory name to use.
+
+.. code-block:: console
+
+  requirements.sh ~/projects
+
 Build
 -----
 
