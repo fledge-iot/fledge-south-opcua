@@ -1,4 +1,4 @@
-#!//usr/bin/env bash
+#!/usr/bin/env bash
 
 ##--------------------------------------------------------------------
 ## Copyright (c) 2019 Dianomic Systems
@@ -48,6 +48,6 @@ if [ ! -d $directory/freeopcua ]; then
 	cmake ..
 	make
 	cd ..
-	echo Set the environemnt variable FREEOPCUA to `pwd`
+	echo Set the environment variable FREEOPCUA to `pwd`
 	echo export FREEOPCUA=`pwd`
 fi

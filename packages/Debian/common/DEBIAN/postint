@@ -21,14 +21,28 @@
 ## @postinst DEBIAN/postinst
 ## This script is used to execute post installation tasks.
 ##
-## Author: Massimiliano Pinto
+## Author: Massimiliano Pinto, Ashish Jabble
 ##
 ##--------------------------------------------------------------------
 
 set -e
 
+DIR=/tmp
+FREEOPCUA=freeopcua
+
+
 set_files_ownership () {
     chown -R root:root /usr/local/foglamp/plugins/south/opcua
 }
 
+install_requirements () {
+    rm -rf ${DIR}/${FREEOPCUA}
+    sh /usr/local/foglamp/plugins/south/opcua/requirements.sh ${DIR}
+    export FREEOPCUA=${DIR}/${FREEOPCUA}
+}
+
 set_files_ownership
+install_requirements
+
+echo "opcua plugin is installed"
+
