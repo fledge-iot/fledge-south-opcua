@@ -116,8 +116,11 @@ libdir=${FOGLAMP_ROOT}/cmake_build/C/lib; [ -d ${libdir} ] && LD_LIBRARY_PATH=$(
 [ "$libPathSet" -eq "0" ] && echo "Unable to set/update LD_LIBRARY_PATH to include path of Foglamp shared libraries: check whether ${FOGLAMP_ROOT}/lib or ${FOGLAMP_ROOT}/cmake_build/C/lib exists" && exit 1
 
 # Build freeopcua first
-cd /tmp; rm -rf freeopcua; git clone https://github.com/FreeOpcUa/freeopcua.git; cd freeopcua; export FREEOPCUA=`pwd`;
-sed -i '/option(SSL_SUPPORT_MBEDTLS/s/ON/OFF/' CMakeLists.txt; mkdir build; cd build; cmake ..; make; cd ${GIT_ROOT}
+DIR=/tmp
+FREEOPCUA=freeopcua
+rm -rf ${DIR}/${FREEOPCUA}
+./requirements.sh ${DIR}
+export FREEOPCUA=${DIR}/${FREEOPCUA}
 
 # Build plugin
 rm -rf build; mkdir ./build; cd ./build; cmake ..; make; cd ..
@@ -145,6 +148,7 @@ mkdir -p usr/local/foglamp
 cd usr/local/foglamp
 mkdir -p "plugins/${plugin_type}/${plugin_install_dirname}"
 cp -R --preserve=links ${GIT_ROOT}/build/lib*.so* "plugins/${plugin_type}/${plugin_install_dirname}"
+cp ${GIT_ROOT}/requirements.sh ./plugins/${plugin_type}/${plugin_install_dirname}
 echo "Done."
 
 # Build the package
