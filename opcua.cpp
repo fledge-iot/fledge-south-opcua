@@ -196,6 +196,7 @@ void
 OPCUA::stop()
 {
 	m_client->Disconnect();
+	delete m_client;
 }
 
 /**
