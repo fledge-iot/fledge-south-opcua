@@ -15,6 +15,7 @@
 #include <opc/ua/subscription.h>
 #include <reading.h>
 #include <logger.h>
+#include <mutex>
 
 class OpcUaClient;
 
@@ -38,6 +39,7 @@ class OPCUA
 				}
 
 	private:
+		int				addSubscribe(const OpcUa::Node& node, bool active);
 		std::vector<std::string>	m_subscriptions;
 		std::string			m_url;
 		std::string			m_asset;
@@ -46,6 +48,7 @@ class OPCUA
 		void				*m_data;
 		OpcUaClient			*m_subClient;
 		OpcUa::Subscription::SharedPtr	m_sub;
+		std::mutex			m_configMutex;
 };
 
 class OpcUaClient : public OpcUa::SubscriptionHandler

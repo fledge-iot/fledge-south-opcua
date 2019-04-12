@@ -6,8 +6,34 @@ A simple asynchronous OPC UA plugin that registers for change events on OPC UA o
 
 NOTE:
 
-This plugin assumes the freeopcua is available at a specified location in the file system. To build you
-must clone the freeopcua repository to a directory of your choice.
+This plugin assumes the freeopcua is available at a specified location in the file system, see below.
+
+Configuration
+-------------
+
+This configuration of this plugin requires 3 parameters to be set
+
+asset
+  An asset name prefix that is added to the OPC UA variables retrieved from the OPC UA server
+
+url
+  The URL used to connect the server, of the form opc.tcp://<hostname>:<port>/...
+
+subscriptions
+  An array of OPC UA node names that will control the subscription to
+  variables in the OPC UA server. The array may be empty, in which case
+  all variables are subscribed to in the server and will create assets in
+  FogLAMP. Although simple subscribing to everything will return a lot of
+  data that may not be of use. Alternatively a set of string may be give,
+  the format of the strings is <namespace>:<name>. If the namespace is
+  not requied then the name can simply be given. The plugin will traverse
+  the node tree of the server and subscribe to all variables that live
+  below the named nodes in the subscriptions array.
+
+Building freeopuca
+------------------
+
+To build freeopcua you must clone the freeopcua repository to a directory of your choice.
 
 .. code-block:: console
 

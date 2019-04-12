@@ -64,7 +64,7 @@ static PLUGIN_INFORMATION info = {
  */
 PLUGIN_INFORMATION *plugin_info()
 {
-	Logger::getLogger()->error("Config is %s", info.config);
+	Logger::getLogger()->info("OPC UA Config is %s", info.config);
 	return &info;
 }
 
