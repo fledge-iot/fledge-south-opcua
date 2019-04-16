@@ -2,11 +2,13 @@
 OPC UA C/C++ South plugin 
 ========================================================================
 
-A simple asynchronous OPC UA plugin that registers for change events on OPC UA objects.
+A simple asynchronous OPC UA plugin that registers for change events on
+OPC UA objects.
 
 NOTE:
 
-This plugin assumes the freeopcua is available at a specified location in the file system, see below.
+This plugin assumes the freeopcua is available at a specified location
+in the file system, see below.
 
 Configuration
 -------------
