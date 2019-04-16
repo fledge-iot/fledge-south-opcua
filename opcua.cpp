@@ -168,7 +168,8 @@ int n_subscriptions = 0;
 	Logger::getLogger()->info("Look for variable to subscribe to under ObjectsNode");
 	lock_guard<mutex> guard(m_configMutex);
 	try {
-		n_subscriptions = addSubscribe(m_client->GetObjectsNode(), m_subscriptions.size() == 0 ? true : false);
+		n_subscriptions = addSubscribe(m_client->GetObjectsNode(),
+					m_subscriptions.size() == 0 ? true : false);
 	} catch (exception& e) {
 		Logger::getLogger()->error("Failed to create subscriptions from Objects node: %s", e.what());
 	}
@@ -186,7 +187,15 @@ int n_subscriptions = 0;
 			Logger::getLogger()->error("Failed to create subscriptions from root node: %s", e.what());
 		}
 	}
-	Logger::getLogger()->info("Added %d variable subscriptions.", n_subscriptions);
+	if (n_subscriptions == 0)
+	{
+		Logger::getLogger()->warn("No eligible variables in OPC UA server to which to subscribe");
+		throw runtime_error("No subscriptions");
+	}
+	else
+	{
+		Logger::getLogger()->info("Added %d variable subscriptions.", n_subscriptions);
+	}
 }
 
 /**
