@@ -85,7 +85,8 @@ int OPCUA::addSubscribe(const OpcUa::Node& node, bool active)
 	int n_subscriptions = 0;
 
 	OpcUa::QualifiedName nName = node.GetBrowseName();
-	Logger::getLogger()->debug("addSubscribe(%d:%s) %s", nName.NamespaceIndex, nName.Name.c_str(), active ? "true" : "false");
+	Logger::getLogger()->debug("addSubscribe(%d:%s) %s", nName.NamespaceIndex,
+		       		nName.Name.c_str(), active ? "true" : "false");
 	if (active)
 	{
 		vector<OpcUa::Node> variables = node.GetVariables();
@@ -93,12 +94,14 @@ int OPCUA::addSubscribe(const OpcUa::Node& node, bool active)
 		for (auto var : variables)
 		{
 			OpcUa::QualifiedName qName = var.GetBrowseName();
-			Logger::getLogger()->debug("Subscribe to variable %d:%s", qName.NamespaceIndex, qName.Name.c_str());
+			Logger::getLogger()->debug("Subscribe to variable %d:%s",
+					qName.NamespaceIndex, qName.Name.c_str());
 			try {
 				m_sub->SubscribeDataChange(var);
 				n_subscriptions++;
 			} catch (exception& e) {
-				Logger::getLogger()->warn("Subscription to variable %d:%s failed, %s", qName.NamespaceIndex, qName.Name.c_str(), e.what());
+				Logger::getLogger()->warn("Subscription to variable %d:%s failed, %s",
+					qName.NamespaceIndex, qName.Name.c_str(), e.what());
 			}
 		}
 	}
