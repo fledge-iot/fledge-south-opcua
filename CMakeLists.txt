@@ -49,7 +49,11 @@ endif()
 # On success, FOGLAMP_INCLUDE_DIRS and FOGLAMP_LIB_DIRS variables are set 
 
 # Find the freeopcua files
-set(OPCUADIR $ENV{FREEOPCUA})
+if (NOT "$ENV{FREEOPCUA}" STREQUAL "")
+	set(OPCUADIR $ENV{FREEOPCUA})
+else()
+	set(OPCUADIR "$ENV{HOME}/freeopcua")
+endif()
 
 # Add ./include
 include_directories(include)
