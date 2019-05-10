@@ -63,7 +63,7 @@ include_directories(${FOGLAMP_INCLUDE_DIRS})
 # Add other include paths
 # We assume the 'freeopcua' header files are available here: 
 if (NOT EXISTS "${OPCUADIR}/include")
-	message(FATAL_ERROR "OPCUADIR does not apear to be pointing at a valid OPCUA source tree")
+	message(FATAL_ERROR "OPCUADIR does notppear to be pointing at a valid OPCUA source tree")
 	return()
 endif()
 include_directories(${OPCUADIR}/include)
