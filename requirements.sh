@@ -26,7 +26,7 @@ if [ $# -eq 1 ]; then
 		mkdir -p $directory
 	fi
 else
-	directory=~/freeopcua
+	directory=~
 fi
 
 if [ ! -d $directory/freeopcua ]; then
