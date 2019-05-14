@@ -23,24 +23,41 @@ typedef void (*INGEST_CB)(void *, Reading);
 
 using namespace std;
 
+#define TO_STRING(...) DEFER(TO_STRING_)(__VA_ARGS__)
+#define DEFER(x) x
+#define TO_STRING_(...) #__VA_ARGS__
+#define QUOTE(...) TO_STRING(__VA_ARGS__)
+
 /**
  * Default configuration
  */
-#define CONFIG	"{\"plugin\" : { \"description\" : \"Simple OPC UA data change plugin\", " \
-			"\"type\" : \"string\", \"default\" : \"opcua\", " \
-			"\"readonly\" : \"true\" }, " \
-		"\"asset\" : { \"description\" : \"Asset name\", " \
-			"\"type\" : \"string\", \"default\" : \"opcua\", " \
-			"\"displayName\" : \"Asset Name\", \"order\" : \"1\" }, " \
-		"\"url\" : { \"description\" : \"URL of the OPC UA Server\", " \
-			"\"type\" : \"string\", \"default\" : " \
-			"\"opc.tcp://mark.local:53530/OPCUA/SimulationServer\", " \
-			"\"displayName\" : \"OPCUA Server URL\", \"order\" : \"2\"}, " \
-		"\"subscription\" : { \"description\" : \"Variable to observe changes in\", " \
-			"\"type\" : \"JSON\", \"default\" : " \
-			"\"{ \\\"subscriptions\\\" : [  \\\"5:Simulation\\\" ] }\", " \
-			"\"displayName\" : \"OPCUA Object Subscriptions\", \"order\" : \"3\" } " \
-			"}"
+const char *default_config = QUOTE({
+	"plugin" : {
+       		"description" : "Simple OPC UA data change plugin",
+		"type" : "string",
+	       	"default" : "opcua",
+		"readonly" : "true"
+		},
+	"asset" : {
+       		"description" : "Asset name",
+		"type" : "string",
+	       	"default" : "opcua",
+		"displayName" : "Asset Name",
+	       	"order" : "1"
+	       	},
+	"url" : { "description" : "URL of the OPC UA Server",
+		"type" : "string",
+	       	"default" : "opc.tcp://mark.local:53530/OPCUA/SimulationServer",
+		"displayName" : "OPCUA Server URL",
+	       	"order" : "2"},
+	"subscription" : {
+		"description" : "Variables to observe changes in",
+		"type" : "JSON",
+	       	"default" : "{ \"subscriptions\" : [  \"5:Simulation\" ] }",
+		"displayName" : "OPCUA Object Subscriptions",
+	       	"order" : "3"
+       		}
+	});
 
 /**
  * The OPCUA plugin interface
@@ -56,7 +73,7 @@ static PLUGIN_INFORMATION info = {
 	SP_ASYNC, 		  // Flags
 	PLUGIN_TYPE_SOUTH,        // Type
 	"1.0.0",                  // Interface version
-	CONFIG			  // Default configuration
+	default_config		  // Default configuration
 };
 
 /**
@@ -64,7 +81,7 @@ static PLUGIN_INFORMATION info = {
  */
 PLUGIN_INFORMATION *plugin_info()
 {
-	Logger::getLogger()->error("Config is %s", info.config);
+	Logger::getLogger()->info("OPC UA Config is %s", info.config);
 	return &info;
 }
 
