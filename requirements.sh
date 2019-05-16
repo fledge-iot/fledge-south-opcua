@@ -43,8 +43,18 @@ if [ ! -d $directory/freeopcua ]; then
 		mv CMakeLists.txt.$$ CMakeLists.txt
 	cd build
 	echo Installing boost components
-	sudo apt install -y libboost-filesystem-dev
-	sudo apt install -y libboost-program-options-dev
+	which apt >/dev/null 2>&1
+	if [ $? -eq 0 ]; then
+		sudo apt install -y libboost-filesystem-dev
+		sudo apt install -y libboost-program-options-dev
+	else
+		which yum >/dev/null 2>&1
+		if [ $? -eq 0 ]; then
+			sudo yum install -y libboost-filesystem
+			sudo yum install -y libboost-program-options
+		fi
+	fi
+
 	cmake ..
 	make
 	cd ..
