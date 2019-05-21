@@ -1,6 +1,6 @@
 # A set of variables that define how we package this repository
 #
-plugin_name=opca
+plugin_name=opcua
 plugin_type=south
 plugin_install_dirname=${plugin_name}
 
