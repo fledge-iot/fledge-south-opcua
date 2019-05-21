@@ -2,7 +2,7 @@
 #
 plugin_name=opca
 plugin_type=south
-plugin_install_dirname=opcua
+plugin_install_dirname=${plugin_name}
 
 # Now build up the runtime requirements list. This has 3 components
 #   1. Generic packages we depend on in all architectures and package managers
@@ -20,7 +20,9 @@ case "$arch" in
 esac
 case "$package_manager" in
 	deb)
+		requirements="${requirements},libboost-filesystem-dev,libboost-program-options-dev"
 		;;
 	rpm)
+		requirements="${requirements},boost-filesystem,boost-program-options"
 		;;
 esac
