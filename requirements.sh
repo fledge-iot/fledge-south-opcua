@@ -50,8 +50,8 @@ if [ ! -d $directory/freeopcua ]; then
 	else
 		which yum >/dev/null 2>&1
 		if [ $? -eq 0 ]; then
-			sudo yum install -y libboost-filesystem
-			sudo yum install -y libboost-program-options
+			sudo yum install -y boost-filesystem
+			sudo yum install -y boost-program-options
 		fi
 	fi
 
