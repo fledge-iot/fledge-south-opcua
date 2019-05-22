@@ -69,6 +69,9 @@ if [ "$(dpkg --print-architecture)" == "armhf" ]; then
 elif [ "$(dpkg --print-architecture)" == "amd64" ]; then
   echo "Building on amd64 architecture..."
   architecture="x86_64"
+elif [ "$(dpkg --print-architecture)" == "arm64" ]; then
+  echo "Building on arm64 architecture..."
+  architecture="arm64"
 else
   echo "The host architecture is not supported for this plugin!!"
   exit 1
