@@ -26,7 +26,7 @@ if [ $# -eq 1 ]; then
 		mkdir -p $directory
 	fi
 else
-	directory=~/freeopcua
+	directory=~
 fi
 
 if [ ! -d $directory/freeopcua ]; then
@@ -43,8 +43,18 @@ if [ ! -d $directory/freeopcua ]; then
 		mv CMakeLists.txt.$$ CMakeLists.txt
 	cd build
 	echo Installing boost components
-	sudo apt install -y libboost-filesystem-dev
-	sudo apt install -y libboost-program-options-dev
+	which apt >/dev/null 2>&1
+	if [ $? -eq 0 ]; then
+		sudo apt install -y libboost-filesystem-dev
+		sudo apt install -y libboost-program-options-dev
+	else
+		which yum >/dev/null 2>&1
+		if [ $? -eq 0 ]; then
+			sudo yum install -y boost-filesystem
+			sudo yum install -y boost-program-options
+		fi
+	fi
+
 	cmake ..
 	make
 	cd ..

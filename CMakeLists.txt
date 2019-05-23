@@ -49,7 +49,11 @@ endif()
 # On success, FOGLAMP_INCLUDE_DIRS and FOGLAMP_LIB_DIRS variables are set 
 
 # Find the freeopcua files
-set(OPCUADIR $ENV{FREEOPCUA})
+if (NOT "$ENV{FREEOPCUA}" STREQUAL "")
+	set(OPCUADIR $ENV{FREEOPCUA})
+else()
+	set(OPCUADIR "$ENV{HOME}/freeopcua")
+endif()
 
 # Add ./include
 include_directories(include)
@@ -59,7 +63,7 @@ include_directories(${FOGLAMP_INCLUDE_DIRS})
 # Add other include paths
 # We assume the 'freeopcua' header files are available here: 
 if (NOT EXISTS "${OPCUADIR}/include")
-	message(FATAL_ERROR "OPCUADIR does not apear to be pointing at a valid OPCUA source tree")
+	message(FATAL_ERROR "OPCUADIR does notppear to be pointing at a valid OPCUA source tree")
 	return()
 endif()
 include_directories(${OPCUADIR}/include)
@@ -98,7 +102,7 @@ if (NOT OPCUACLIENT)
 			"Please build freeopcua and set the environment variable FREEOPCUA to root of OPCUA")
 	return()
 endif()
-target_link_libraries(${PROJECT_NAME} ${OPCUAPROTOCOL} ${OPCUACLIENT} ${OPCUACORE})
+target_link_libraries(${PROJECT_NAME} ${OPCUACLIENT} ${OPCUACORE} ${OPCUAPROTOCOL})
 
 # Set the build version 
 set_target_properties(${PROJECT_NAME} PROPERTIES SOVERSION 1)
