@@ -2,7 +2,7 @@
 
 # Pass any cmake options this way:
 
-# ./build_rhel_centos_7.sh -DFOGLAMP_INSTALL=/some_path/FogLAMP
+# ./build_rhel.sh -DFOGLAMP_INSTALL=/some_path/FogLAMP
 
 source scl_source enable devtoolset-7
 export CC=$(scl enable devtoolset-7 "command -v gcc")
