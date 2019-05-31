@@ -4,13 +4,10 @@
 
 # ./build_rhel_centos_7.sh -DFOGLAMP_INSTALL=/some_path/FogLAMP
 
+source scl_source enable devtoolset-7
 export CC=$(scl enable devtoolset-7 "command -v gcc")
 export CXX=$(scl enable devtoolset-7 "command -v g++")
 
-echo ${FREEOPCUA}
-echo ${FOGLAMP_ROOT}
-
-rm -rf build/
 mkdir build
 cd build/
 cmake $@ ..
