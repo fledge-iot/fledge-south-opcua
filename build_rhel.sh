@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Pass any cmake options this way:
 
