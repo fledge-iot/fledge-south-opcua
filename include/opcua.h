@@ -7,7 +7,7 @@
  *
  * Released under the Apache 2.0 Licence
  *
- * Author: Mark Riddoch
+ * Author: Mark Riddoch, Massimiliano Pinto
  */
 #include <string>
 #include <opc/ua/client/client.h>
@@ -55,10 +55,40 @@ class OpcUaClient : public OpcUa::SubscriptionHandler
 { 
 	public:
 	  	OpcUaClient(OPCUA *opcua) : m_opcua(opcua) {};
-		void DataChange(uint32_t handle, const OpcUa::Node & node, const OpcUa::Variant & val, OpcUa::AttributeId attr) override
-		{ 
-			std::vector<Datapoint *>	points;
-			DatapointValue value(val.ToString());
+		void DataChange(uint32_t handle,
+				const OpcUa::Node & node,
+				const OpcUa::Variant & val,
+				OpcUa::AttributeId attr) override
+		{
+			std::string bValue;
+			std::string sValue = val.ToString();
+			bool replaceBytes = val.Type() == OpcUa::VariantType::BYTE ||
+					    val.Type() == OpcUa::VariantType::SBYTE;
+
+			if (replaceBytes)
+			{
+				const char* replaceByte = "\\u%04d";
+				for (size_t i = 0; i < sValue.length(); i++)
+				{
+					// Replace not printable char
+					if (!isprint(sValue[i]))
+					{
+						char replace[strlen(replaceByte) + 1];
+						snprintf(replace,
+							 strlen(replaceByte) + 1,
+							 replaceByte,
+							 sValue[i]);
+						bValue += replace;
+					}
+					else
+					{
+						bValue += sValue[i];
+					}
+				}
+			}
+
+			DatapointValue value(replaceBytes ? bValue : sValue);
+			std::vector<Datapoint *> points;
 			points.push_back(new Datapoint(node.GetId().GetStringIdentifier(), value));
 			m_opcua->ingest(points);
 		};
