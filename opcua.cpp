@@ -87,14 +87,34 @@ int OPCUA::addSubscribe(const OpcUa::Node& node, bool active)
 	OpcUa::QualifiedName nName = node.GetBrowseName();
 	Logger::getLogger()->debug("addSubscribe(%d:%s) %s", nName.NamespaceIndex,
 		       		nName.Name.c_str(), active ? "true" : "false");
-	if (active)
+	vector<OpcUa::Node> variables = node.GetVariables();
+	Logger::getLogger()->debug("Node has %d variables", variables.size());
+	for (auto var : variables)
 	{
-		vector<OpcUa::Node> variables = node.GetVariables();
-		Logger::getLogger()->debug("Node has %d variables", variables.size());
-		for (auto var : variables)
+		OpcUa::QualifiedName qName = var.GetBrowseName();
+		bool varMatched = false;
+		for (string subName : m_subscriptions)
 		{
-			OpcUa::QualifiedName qName = var.GetBrowseName();
-			Logger::getLogger()->debug("Subscribe to variable %d:%s",
+			Logger::getLogger()->debug("Variable %d:%s", qName.NamespaceIndex, qName.Name.c_str());
+			size_t pos;
+			if ((pos = subName.find(":")) != string::npos)
+			{
+				unsigned long pns = stoul(subName.substr(0, pos), NULL, 10);
+				Logger::getLogger()->debug("Variable has namespace in it, pns %d", pns);
+				if (qName.Name.compare(subName.substr(pos + 1)) == 0 
+						&& pns == qName.NamespaceIndex)
+				{
+					varMatched = true;
+				}
+			}
+			else if (subName.compare(qName.Name) == 0)
+			{
+				varMatched = true;
+			}
+		}
+		if (active || varMatched)
+		{
+			Logger::getLogger()->debug("Subscribing to individual variable %d:%s",
 					qName.NamespaceIndex, qName.Name.c_str());
 			try {
 				m_sub->SubscribeDataChange(var);
