@@ -31,6 +31,58 @@ subscriptions
   not requied then the name can simply be given. The plugin will traverse
   the node tree of the server and subscribe to all variables that live
   below the named nodes in the subscriptions array.
+  
+  Configuration examples:
+
+.. code-block:: console
+
+    {"subscriptions":["5:Simulation","2:MyLevel"]}
+    {"subscriptions":["5:Sinusoid1","2:MyLevel","5:Sawtooth1"]}
+    {"subscriptions":["2:Random.Double","2:Random.Boolean"]}
+
+In the above examples
+ - 5:Simulation is a node name under ObjectsNode
+ - 5:Sinusoid1 and 5:Sawtooth1 are variables under ObjectsNode/Simulation 
+ - 2:MyLevel is a variable under ObjectsNode/MyObjects/MyDevice
+ - Random.Double and Random.Boolean are variables under ObjectsNode/Demo
+ - 5 and 2 are the NamespaceIndex values of a node or a variable
+
+It's also possible to specify an empty subscription array:
+
+.. code-block:: console
+
+    {"subscriptions":[]}
+
+Note: depending on OPC UA server configuration (number of objects, number of variables)
+this empty configuration might take a while to be loaded.
+
+Object names, variable names and NamespaceIndexes can be easily retrieved
+browsing the given OPC UA server using OPC UA clients, such as UaExpert
+
+https://www.unified-automation.com/downloads/opc-ua-clients.html
+
+
+As an examle the UA client shows:
+
+.. code-block:: console
+
+    **Node**
+    NodeId ns=5;s=85/0:Simulation
+    NodeClass [Object]
+    BrowseName 5:Simulation
+
+    **Variable**
+    NodeId ns=5;s=Sinusoid1
+    NodeClass [Variable]
+    BrowseName 5:Sinusoid1
+
+    NodeId ns=2;s=MyLevel
+    NodeClass [Variable]
+    BrowseName 2:MyLevel
+
+Most examples come from Object in ProSys OPC UA simulation server:
+
+https://www.prosysopc.com/products/opc-ua-simulation-server/
 
 Building freeopuca
 ------------------
