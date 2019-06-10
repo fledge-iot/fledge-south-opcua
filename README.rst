@@ -66,12 +66,14 @@ As an examle the UA client shows:
 
 .. code-block:: console
 
-    **Node**
+    Node:
+
     NodeId ns=5;s=85/0:Simulation
     NodeClass [Object]
     BrowseName 5:Simulation
 
-    **Variable**
+    Variables:
+
     NodeId ns=5;s=Sinusoid1
     NodeClass [Variable]
     BrowseName 5:Sinusoid1
