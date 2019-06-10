@@ -113,13 +113,32 @@ int OPCUA::addSubscribe(const OpcUa::Node& node, bool active)
 		string key = to_string(qName.NamespaceIndex) + ":" + nName.Name + ":" + qName.Name;
 
 		// Get configuration items: ObjectNames or Variables
-		for (string subName : m_subscriptions)
+		for (auto it = m_subscriptions.begin();
+			  it != m_subscriptions.end();)
 		{
-			Logger::getLogger()->debug("Variable %s", key.c_str());
 			size_t pos;
+			string subName = *it;
 			if ((pos = subName.find(":")) != string::npos)
 			{
-				unsigned long pns = stoul(subName.substr(0, pos), NULL, 10);
+				unsigned long pns = 0;
+				try {
+					pns = stoul(subName.substr(0, pos), NULL, 10);
+					++it;
+				}
+				catch (exception& e)
+				{
+					Logger::getLogger()->error("Exception while parsing "
+								   "configuration element '%s' in node '%d:%s', "
+								   "error '%s'. Configuration element removed.",
+								   subName.c_str(),
+								   qName.NamespaceIndex,
+								   qName.Name.c_str(),
+								   e.what());
+
+					// Remove configuration item
+					m_subscriptions.erase(it);
+					continue;
+				}
 				Logger::getLogger()->debug("Variable %s has namespace in it, pns %d",
 							   subName.c_str(),
 							   pns);
@@ -227,12 +246,33 @@ int OPCUA::addSubscribe(const OpcUa::Node& node, bool active)
 		if (! child_active)
 		{
 			OpcUa::QualifiedName qName = child.GetBrowseName();
-			for (string parent : m_subscriptions)
+			for (auto it = m_subscriptions.begin();
+				  it != m_subscriptions.end();)
 			{
+				string parent = *it;
 				size_t pos;
 				if ((pos = parent.find(":")) != string::npos)
 				{
-					unsigned long pns = stoul(parent.substr(0, pos), NULL, 10);
+					unsigned long pns = 0;
+					try {
+						pns = stoul(parent.substr(0, pos), NULL, 10);
+						++it;
+					}
+					catch (exception& e)
+					{
+						Logger::getLogger()->error("Exception while parsing "
+									   "configuration element '%s' in "
+									   "child node '%d:%s', error '%s'. "
+									   "Configuration element removed.",
+									   parent.c_str(),
+									   qName.NamespaceIndex,
+									   qName.Name.c_str(),
+									   e.what());
+
+						// Remove configuration item
+						m_subscriptions.erase(it);
+						continue;
+					}
 					if (qName.Name.compare(parent.substr(pos + 1)) == 0 
 							&& pns == qName.NamespaceIndex)
 					{
@@ -309,7 +349,6 @@ int n_subscriptions = 0;
 	if (n_subscriptions == 0)
 	{
 		Logger::getLogger()->warn("No eligible variables in OPC UA server to which to subscribe");
-		throw runtime_error("No subscriptions");
 	}
 	else
 	{
