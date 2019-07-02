@@ -113,86 +113,75 @@ int OPCUA::addSubscribe(const OpcUa::Node& node, bool active)
 			// key is : NameSpaceIndex : NodeName : VarName 
 			string key = to_string(qName.NamespaceIndex) + ":" + nName.Name + ":" + qName.Name;
 
-			string id = "";
-			try {
-				id = var.GetId().GetStringIdentifier();
-			} catch (exception &e) {
-				Logger::getLogger()->debug("Failed to get node id for %s, %s", qName.Name.c_str(), e.what());
-			}
 			// Get configuration items: ObjectNames or Variables
 			for (auto it = m_subscriptions.begin();
 				  it != m_subscriptions.end(); ++it)
 			{
 				size_t pos;
 				string subName = *it;
+		
 				if (m_subscribeById)
 				{
-					if (subName.compare(id) == 0)
+					// Check whether to add variable to the map
+					if (subscriptionVariables.find(key) == subscriptionVariables.end())
+					{
+						varMatched = true;
+						subscriptionVariables[key] = true;
+						Logger::getLogger()->debug("Adding subscription variable (%s) to "
+									   "the map, key (%s)",
+									   subName.c_str(),
+									   key.c_str());
+					}
+				}
+				else if ((pos = subName.find(":")) != string::npos)
+				{
+					unsigned long pns = 0;
+					try {
+						pns = stoul(subName.substr(0, pos), NULL, 10);
+					}
+					catch (exception& e)
+					{
+						Logger::getLogger()->error("Exception while parsing "
+									   "configuration element '%s' in node '%d:%s', "
+									   "error '%s'. Configuration element removed.",
+									   subName.c_str(),
+									   qName.NamespaceIndex,
+									   qName.Name.c_str(),
+									   e.what());
+
+						// Remove configuration item
+						m_subscriptions.erase(it);
+						continue;
+					}
+					Logger::getLogger()->debug("Variable %s has namespace in it, pns %d",
+								   subName.c_str(),
+								   pns);
+					if (qName.Name.compare(subName.substr(pos + 1)) == 0 
+							&& pns == qName.NamespaceIndex)
 					{
 						// Check whether to add variable to the map
 						if (subscriptionVariables.find(key) == subscriptionVariables.end())
 						{
 							varMatched = true;
 							subscriptionVariables[key] = true;
-							Logger::getLogger()->debug("Adding subscription variable (%s) to the map "
-										   " key (%s)",
+							Logger::getLogger()->debug("Adding subscription variable (%s) to "
+										   "the map, key (%s)",
 										   subName.c_str(),
 										   key.c_str());
 						}
 					}
 				}
-				else
+				else if (subName.compare(qName.Name) == 0)
 				{
-					if ((pos = subName.find(":")) != string::npos)
+					// Check wether to add variable to the map
+					if (subscriptionVariables.find(key) == subscriptionVariables.end())
 					{
-						unsigned long pns = 0;
-						try {
-							pns = stoul(subName.substr(0, pos), NULL, 10);
-						}
-						catch (exception& e)
-						{
-							Logger::getLogger()->error("Exception while parsing "
-										   "configuration element '%s' in node '%d:%s', "
-										   "error '%s'. Configuration element removed.",
-										   subName.c_str(),
-										   qName.NamespaceIndex,
-										   qName.Name.c_str(),
-										   e.what());
-
-							// Remove configuration item
-							m_subscriptions.erase(it);
-							continue;
-						}
-						Logger::getLogger()->debug("Variable %s has namespace in it, pns %d",
+						varMatched = true;
+						subscriptionVariables[key] = true;
+						Logger::getLogger()->debug("Adding subscription variable (%s) to the map "
+									   " key (%s)",
 									   subName.c_str(),
-									   pns);
-						if (qName.Name.compare(subName.substr(pos + 1)) == 0 
-								&& pns == qName.NamespaceIndex)
-						{
-							// Check whether to add variable to the map
-							if (subscriptionVariables.find(key) == subscriptionVariables.end())
-							{
-								varMatched = true;
-								subscriptionVariables[key] = true;
-								Logger::getLogger()->debug("Adding subscription variable (%s) to "
-											   "the map, key (%s)",
-											   subName.c_str(),
-											   key.c_str());
-							}
-						}
-					}
-					else if (subName.compare(qName.Name) == 0)
-					{
-						// Check wether to add variable to the map
-						if (subscriptionVariables.find(key) == subscriptionVariables.end())
-						{
-							varMatched = true;
-							subscriptionVariables[key] = true;
-							Logger::getLogger()->debug("Adding subscription variable (%s) to the map "
-										   " key (%s)",
-										   subName.c_str(),
-										   key.c_str());
-						}
+									   key.c_str());
 					}
 				}
 			}
@@ -271,24 +260,10 @@ int OPCUA::addSubscribe(const OpcUa::Node& node, bool active)
 			if (! child_active)
 			{
 				OpcUa::QualifiedName qName = child.GetBrowseName();
-				string id = "";
-				try {
-					id = child.GetId().GetStringIdentifier();
-				} catch (exception &e) {
-					Logger::getLogger()->debug("Failed to get node id for %s, %s", qName.Name.c_str(), e.what());
-				}
 				for (auto it = m_subscriptions.begin();
 					  it != m_subscriptions.end(); ++it)
 				{
 					string parent = *it;
-					if (m_subscribeById)
-					{
-						if (parent.compare(id) == 0)
-						{
-							child_active = true;
-						}
-					}
-					else
 					{
 						size_t pos;
 						if ((pos = parent.find(":")) != string::npos)
@@ -368,13 +343,6 @@ int n_subscriptions = 0;
 		throw e;
 	}
 
-	OpcUa::Node root;
-	try {
-		root = m_client->GetRootNode();
-	} catch (exception &e) {
-		Logger::getLogger()->error("Failed to fetch root node from OPCUA server %s: %s", m_url.c_str(), e.what());
-		throw e;
-	}
 
 
 	try {
@@ -385,30 +353,83 @@ int n_subscriptions = 0;
 		throw e;
 	}
 
-	/*
-	 * First look under the Objects root for any variables to subscribe to that
-	 * match out filter criteria for subscriptions.
-	 */
-	Logger::getLogger()->info("Look for variable to subscribe to under ObjectsNode");
-	lock_guard<mutex> guard(m_configMutex);
-	try {
-		n_subscriptions = addSubscribe(m_client->GetObjectsNode(),
-					m_subscriptions.size() == 0 ? true : false);
-	} catch (exception& e) {
-		Logger::getLogger()->error("Failed to create subscriptions from Objects node: %s", e.what());
-	}
-
-	/*
-	 * If we failed to find subscriptions under the Objects node then
-	 * we will try again from the root.
-	 */
-	if (n_subscriptions == 0)
+	if (m_subscribeById)
 	{
-		Logger::getLogger()->warn("Look for variable to subscribe to under the root node");
+		for (auto it = m_subscriptions.begin(); it != m_subscriptions.end(); ++it)
+		{
+			string subscription = (*it);
+			// Parse out ns=..;s=...
+			size_t sStart = subscription.find("s=");
+			size_t nsStart = subscription.find("ns=");
+			size_t delim = subscription.find(";");
+
+			if (sStart != string::npos && nsStart != string::npos && sStart == nsStart + 1)
+			{
+				sStart = subscription.find("s=", sStart + 1);
+			}
+			if (sStart == string::npos || nsStart == string::npos || delim == string::npos)
+			{
+				Logger::getLogger()->error(
+					"Malformed subscription string '%s', must be of the form ns=...;s=...",
+						subscription.c_str());
+				continue;
+			}
+			string str;
+			int ns;
+			if (sStart < delim)
+				str = subscription.substr(sStart + 2, delim - (sStart + 2));
+			else if (sStart > delim)
+				str = subscription.substr(sStart + 2);
+			if (nsStart < delim)
+				ns = atoi(subscription.substr(nsStart + 3, delim - (nsStart + 3)).c_str());
+			else if (nsStart > delim)
+				ns = atoi(subscription.substr(nsStart + 3).c_str());
+			try {
+				OpcUa::NodeId nodeid(str, ns);
+				OpcUa::Node node = m_client->GetNode(nodeid);
+				n_subscriptions = addSubscribe(node, true);
+			} catch (...) {
+				Logger::getLogger()->error("Failed to find node ns=%d;s=%s", ns, str.c_str());
+			}
+		}
+	}
+	else
+	{
+
+
+		OpcUa::Node root;
 		try {
-			n_subscriptions != addSubscribe(root, m_subscriptions.size() == 0 ? true : false);
+			root = m_client->GetRootNode();
+		} catch (exception &e) {
+			Logger::getLogger()->error("Failed to fetch root node from OPCUA server %s: %s", m_url.c_str(), e.what());
+			throw e;
+		}
+
+		/*
+		 * First look under the Objects root for any variables to subscribe to that
+		 * match out filter criteria for subscriptions.
+		 */
+		Logger::getLogger()->info("Look for variable to subscribe to under ObjectsNode");
+		lock_guard<mutex> guard(m_configMutex);
+		try {
+			n_subscriptions = addSubscribe(m_client->GetObjectsNode(),
+						m_subscriptions.size() == 0 ? true : false);
 		} catch (exception& e) {
-			Logger::getLogger()->error("Failed to create subscriptions from root node: %s", e.what());
+			Logger::getLogger()->error("Failed to create subscriptions from Objects node: %s", e.what());
+		}
+
+		/*
+		 * If we failed to find subscriptions under the Objects node then
+		 * we will try again from the root.
+		 */
+		if (n_subscriptions == 0)
+		{
+			Logger::getLogger()->warn("Look for variable to subscribe to under the root node");
+			try {
+				n_subscriptions != addSubscribe(root, m_subscriptions.size() == 0 ? true : false);
+			} catch (exception& e) {
+				Logger::getLogger()->error("Failed to create subscriptions from root node: %s", e.what());
+			}
 		}
 	}
 	if (n_subscriptions == 0)
