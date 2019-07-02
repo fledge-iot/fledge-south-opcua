@@ -56,7 +56,14 @@ const char *default_config = QUOTE({
 	       	"default" : "{ \"subscriptions\" : [  \"5:Simulation\" ] }",
 		"displayName" : "OPCUA Object Subscriptions",
 	       	"order" : "3"
-       		}
+       		},
+	"subscribeById" : {
+		"description" : "Subscribe using node id",
+		"type" : "boolean",
+		"default" : "false",
+		"displayName" : "Subcribe By ID",
+		"order" : "4"
+		}
 	});
 
 /**
@@ -113,6 +120,19 @@ string	url;
 	else
 	{
 		opcua->setAssetName("opcua");
+	}
+
+	if (config->itemExists("subscribeById"))
+	{
+		string byId = config->getValue("subscribeById");
+		if (byId.compare("true") == 0)
+		{
+			opcua->subscribeById(true);
+		}
+		else
+		{
+			opcua->subscribeById(false);
+		}
 	}
 
 	// Now add the subscription data
@@ -181,9 +201,8 @@ OPCUA *opcua = (OPCUA *)handle;
 void plugin_reconfigure(PLUGIN_HANDLE *handle, string& newConfig)
 {
 ConfigCategory	config("new", newConfig);
-OPCUA		*opcua = (OPCUA *)handle;
+OPCUA		*opcua = (OPCUA *)*handle;
 
-	Logger::getLogger()->info("UPC UA plugin reconfigure");
 	if (config.itemExists("url"))
 	{
 		string url = config.getValue("url");
@@ -193,6 +212,19 @@ OPCUA		*opcua = (OPCUA *)handle;
 	if (config.itemExists("asset"))
 	{
 		opcua->setAssetName(config.getValue("asset"));
+	}
+
+	if (config.itemExists("subscribeById"))
+	{
+		string byId = config.getValue("subscribeById");
+		if (byId.compare("true") == 0)
+		{
+			opcua->subscribeById(true);
+		}
+		else
+		{
+			opcua->subscribeById(false);
+		}
 	}
 
 	if (config.itemExists("subscription"))

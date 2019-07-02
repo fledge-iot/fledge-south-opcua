@@ -29,6 +29,7 @@ class OPCUA
 		void		setAssetName(const std::string& name);
 		void		restart();
 		void		newURL(const std::string& url) { m_url = url; };
+		void		subscribeById(bool byId) { m_subscribeById = byId; };
 		void		start();
 		void		stop();
 		void		ingest(std::vector<Datapoint *>  points);
@@ -49,6 +50,7 @@ class OPCUA
 		OpcUaClient			*m_subClient;
 		OpcUa::Subscription::SharedPtr	m_sub;
 		std::mutex			m_configMutex;
+		bool				m_subscribeById;
 };
 
 class OpcUaClient : public OpcUa::SubscriptionHandler
