@@ -104,6 +104,18 @@ int OPCUA::addSubscribe(const OpcUa::Node& node, bool active)
 						   variables.size());
 		}
 
+		// Special case of being called with a variable
+		if (node.GetNodeClass() == OpcUa::NodeClass::Variable)
+		{
+			try {
+				m_sub->SubscribeDataChange(node);
+				n_subscriptions++;
+			} catch (exception& e) {
+				Logger::getLogger()->warn("Subscription to variable (%s) failed, %s", nName.Name.c_str(), e.what());
+			}
+			return n_subscriptions;;
+		}
+
 		// Get variables
 		for (auto var : variables)
 		{
