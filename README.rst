@@ -21,16 +21,28 @@ asset
 url
   The URL used to connect the server, of the form opc.tcp://<hostname>:<port>/...
 
+subscribeById
+  A toggle that determines of the subscriptions are to be treated as
+  OPC UA node names or as browse names.
+
+
 subscriptions
   An array of OPC UA node names that will control the subscription to
-  variables in the OPC UA server. The array may be empty, in which case
-  all variables are subscribed to in the server and will create assets in
-  FogLAMP. Although simple subscribing to everything will return a lot of
-  data that may not be of use. Alternatively a set of string may be give,
-  the format of the strings is <namespace>:<name>. If the namespace is
-  not requied then the name can simply be given. The plugin will traverse
-  the node tree of the server and subscribe to all variables that live
-  below the named nodes in the subscriptions array.
+  variables in the OPC UA server.
+
+  If the subscribeById option is set then this is an array of node
+  Id's. Each node Id should be of the form ns=..;s=... Where ns is a
+  namespace index and s is the node id string identifier.
+ 
+  If the subscribeById option is not set then the array is an array of
+  browse names. The array may be empty, in which case all variables are
+  subscribed to in the server and will create assets in FogLAMP. Although
+  simple subscribing to everything will return a lot of data that may
+  not be of use. Alternatively a set of string may be give, the format
+  of the strings is <namespace>:<name>. If the namespace is not requied
+  then the name can simply be given. The plugin will traverse the node
+  tree of the server and subscribe to all variables that live below the
+  named nodes in the subscriptions array.
   
   Configuration examples:
 

@@ -53,14 +53,14 @@ const char *default_config = QUOTE({
 	"subscription" : {
 		"description" : "Variables to observe changes in",
 		"type" : "JSON",
-	       	"default" : "{ \"subscriptions\" : [  \"5:Simulation\" ] }",
+	       	"default" : "{ \"subscriptions\" : [  \"ns=5;s=85/0:Simulation\" ] }",
 		"displayName" : "OPCUA Object Subscriptions",
 	       	"order" : "3"
        		},
 	"subscribeById" : {
 		"description" : "Subscribe using node id",
 		"type" : "boolean",
-		"default" : "false",
+		"default" : "true",
 		"displayName" : "Subcribe By ID",
 		"order" : "4"
 		}
