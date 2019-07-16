@@ -105,15 +105,32 @@ int OPCUA::addSubscribe(const OpcUa::Node& node, bool active)
 		}
 
 		// Special case of being called with a variable
-		if (node.GetNodeClass() == OpcUa::NodeClass::Variable)
+		if (m_subscribeById &&
+		    node.GetNodeClass() == OpcUa::NodeClass::Variable)
 		{
-			try {
-				m_sub->SubscribeDataChange(node);
-				n_subscriptions++;
-			} catch (exception& e) {
-				Logger::getLogger()->warn("Subscription to variable (%s) failed, %s", nName.Name.c_str(), e.what());
+			// Get ParentName
+			OpcUa::Node parent = node.GetParent();
+			OpcUa::QualifiedName pName = parent.GetBrowseName();
+			// Create key
+			string key = to_string(nName.NamespaceIndex) + ":" + pName.Name + ":" + nName.Name;
+
+			// Add variable if not existant
+			if (subscriptionVariables.find(key) == subscriptionVariables.end())
+			{
+				subscriptionVariables[key] = true;
+				Logger::getLogger()->debug("Adding subscription variable by Id (%s) to "
+							   "the map, key (%s)",
+				nName.Name.c_str(),
+				key.c_str());
+
+				try {
+					m_sub->SubscribeDataChange(node);
+					n_subscriptions++;
+				} catch (exception& e) {
+					Logger::getLogger()->warn("Subscription to variable (%s) failed, %s", nName.Name.c_str(), e.what());
+				}
 			}
-			return n_subscriptions;;
+			return n_subscriptions;
 		}
 
 		// Get variables
@@ -228,11 +245,6 @@ int OPCUA::addSubscribe(const OpcUa::Node& node, bool active)
 				// Handle ObjectNode
 				if (active)
 				{
-					Logger::getLogger()->debug("Subscribing to variable (%s), belonging to (%d:%s)",
-								   qName.Name.c_str(),
-								   qName.NamespaceIndex,
-								   nName.Name.c_str()); 
-
 					auto it = subscriptionVariables.find(key);
 					// Check wether an existing variable has to be subscribed
 					bool subscribeVariable = true;
@@ -247,6 +259,10 @@ int OPCUA::addSubscribe(const OpcUa::Node& node, bool active)
 
 					if (subscribeVariable)
 					{
+						Logger::getLogger()->debug("Subscribing to variable (%s), belonging to (%d:%s)",
+									   qName.Name.c_str(),
+									   qName.NamespaceIndex,
+									   nName.Name.c_str()); 
 						try {
 							m_sub->SubscribeDataChange(var);
 							n_subscriptions++;
@@ -399,7 +415,7 @@ int n_subscriptions = 0;
 			try {
 				OpcUa::NodeId nodeid(str, ns);
 				OpcUa::Node node = m_client->GetNode(nodeid);
-				n_subscriptions = addSubscribe(node, true);
+				n_subscriptions += addSubscribe(node, true);
 			} catch (...) {
 				Logger::getLogger()->error("Failed to find node ns=%d;s=%s", ns, str.c_str());
 			}
