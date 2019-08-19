@@ -23,6 +23,7 @@ typedef void (*INGEST_CB)(void *, Reading);
 
 using namespace std;
 
+#define PLUGIN_NAME	"opcua"
 
 /**
  * Default configuration
@@ -31,7 +32,7 @@ const char *default_config = QUOTE({
 	"plugin" : {
        		"description" : "Simple OPC UA data change plugin",
 		"type" : "string",
-	       	"default" : "opcua",
+	       	"default" : PLUGIN_NAME,
 		"readonly" : "true"
 		},
 	"asset" : {
@@ -71,7 +72,7 @@ extern "C" {
  * The plugin information structure
  */
 static PLUGIN_INFORMATION info = {
-	"upcua",                  // Name
+	PLUGIN_NAME,              // Name
 	VERSION,                  // Version
 	SP_ASYNC, 		  // Flags
 	PLUGIN_TYPE_SOUTH,        // Type
