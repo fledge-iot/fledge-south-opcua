@@ -19,7 +19,7 @@ map<string, bool> subscriptionVariables;
 /**
  * Constructor for the opcua plugin
  */
-OPCUA::OPCUA(const string& url) : m_url(url), m_subscribeById(false)
+OPCUA::OPCUA(const string& url) : m_url(url), m_subscribeById(false), m_connected(false), m_client(NULL)
 {
 }
 
@@ -370,6 +370,7 @@ int n_subscriptions = 0;
 		Logger::getLogger()->error("Failed to connect to OPCUA server %s: %s", m_url.c_str(), e.what());
 		throw e;
 	}
+	m_connected = true;
 
 
 
@@ -476,9 +477,15 @@ int n_subscriptions = 0;
 void
 OPCUA::stop()
 {
-	subscriptionVariables.clear();
-	m_client->Disconnect();
-	delete m_client;
+	if (m_connected)
+	{
+		subscriptionVariables.clear();
+		m_client->Disconnect();
+	}
+	if (m_client)
+	{
+		delete m_client;
+	}
 }
 
 /**
