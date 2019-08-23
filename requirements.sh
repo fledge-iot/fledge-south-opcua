@@ -63,6 +63,7 @@ if [ ! -d $directory/freeopcua ]; then
 		-e 's/add_library(opcuaclient/add_library(opcuaclient STATIC/' \
 		-e 's/add_library(opcuacore/add_library(opcuacore STATIC/' \
 		-e 's/add_library(opcuaprotocol/add_library(opcuaprotocol STATIC/' \
+		-e 's/add_library(opcuaserver/add_library(opcuaserver STATIC/' \
 		< CMakeLists.txt > CMakeLists.txt.$$ && mv CMakeLists.txt CMakeLists.txt.orig && \
 		mv CMakeLists.txt.$$ CMakeLists.txt
 	cd build
