@@ -51,6 +51,7 @@ class OPCUA
 		OpcUa::Subscription::SharedPtr	m_sub;
 		std::mutex			m_configMutex;
 		bool				m_subscribeById;
+		bool				m_connected;
 };
 
 class OpcUaClient : public OpcUa::SubscriptionHandler
