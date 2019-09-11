@@ -1,5 +1,5 @@
 /*
- * FogLAMP south service plugin
+ * Fledge south service plugin
  *
  * Copyright (c) 2018 Dianomic Systems
  *

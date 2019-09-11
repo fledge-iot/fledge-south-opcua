@@ -2,7 +2,7 @@
 
 # Pass any cmake options this way:
 
-# ./build.sh -DFOGLAMP_INSTALL=/some_path/FogLAMP
+# ./build.sh -DFLEDGE_INSTALL=/some_path/Fledge
 #
 
 os_name=`(grep -o '^NAME=.*' /etc/os-release | cut -f2 -d\" | sed 's/"//g')`
