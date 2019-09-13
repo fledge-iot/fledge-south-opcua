@@ -8,9 +8,6 @@
 # build
 build
 
-# packaging
-packages/build
-
 # Editor
 .idea/
 

@@ -23,10 +23,7 @@ typedef void (*INGEST_CB)(void *, Reading);
 
 using namespace std;
 
-#define TO_STRING(...) DEFER(TO_STRING_)(__VA_ARGS__)
-#define DEFER(x) x
-#define TO_STRING_(...) #__VA_ARGS__
-#define QUOTE(...) TO_STRING(__VA_ARGS__)
+#define PLUGIN_NAME	"opcua"
 
 /**
  * Default configuration
@@ -35,7 +32,7 @@ const char *default_config = QUOTE({
 	"plugin" : {
        		"description" : "Simple OPC UA data change plugin",
 		"type" : "string",
-	       	"default" : "opcua",
+	       	"default" : PLUGIN_NAME,
 		"readonly" : "true"
 		},
 	"asset" : {
@@ -53,10 +50,17 @@ const char *default_config = QUOTE({
 	"subscription" : {
 		"description" : "Variables to observe changes in",
 		"type" : "JSON",
-	       	"default" : "{ \"subscriptions\" : [  \"5:Simulation\" ] }",
+	       	"default" : "{ \"subscriptions\" : [  \"ns=5;s=85/0:Simulation\" ] }",
 		"displayName" : "OPCUA Object Subscriptions",
 	       	"order" : "3"
-       		}
+       		},
+	"subscribeById" : {
+		"description" : "Subscribe using node id",
+		"type" : "boolean",
+		"default" : "true",
+		"displayName" : "Subcribe By ID",
+		"order" : "4"
+		}
 	});
 
 /**
@@ -68,7 +72,7 @@ extern "C" {
  * The plugin information structure
  */
 static PLUGIN_INFORMATION info = {
-	"upcua",                  // Name
+	PLUGIN_NAME,              // Name
 	VERSION,                  // Version
 	SP_ASYNC, 		  // Flags
 	PLUGIN_TYPE_SOUTH,        // Type
@@ -113,6 +117,19 @@ string	url;
 	else
 	{
 		opcua->setAssetName("opcua");
+	}
+
+	if (config->itemExists("subscribeById"))
+	{
+		string byId = config->getValue("subscribeById");
+		if (byId.compare("true") == 0)
+		{
+			opcua->subscribeById(true);
+		}
+		else
+		{
+			opcua->subscribeById(false);
+		}
 	}
 
 	// Now add the subscription data
@@ -181,9 +198,8 @@ OPCUA *opcua = (OPCUA *)handle;
 void plugin_reconfigure(PLUGIN_HANDLE *handle, string& newConfig)
 {
 ConfigCategory	config("new", newConfig);
-OPCUA		*opcua = (OPCUA *)handle;
+OPCUA		*opcua = (OPCUA *)*handle;
 
-	Logger::getLogger()->info("UPC UA plugin reconfigure");
 	if (config.itemExists("url"))
 	{
 		string url = config.getValue("url");
@@ -193,6 +209,19 @@ OPCUA		*opcua = (OPCUA *)handle;
 	if (config.itemExists("asset"))
 	{
 		opcua->setAssetName(config.getValue("asset"));
+	}
+
+	if (config.itemExists("subscribeById"))
+	{
+		string byId = config.getValue("subscribeById");
+		if (byId.compare("true") == 0)
+		{
+			opcua->subscribeById(true);
+		}
+		else
+		{
+			opcua->subscribeById(false);
+		}
 	}
 
 	if (config.itemExists("subscription"))
