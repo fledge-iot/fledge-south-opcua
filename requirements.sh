@@ -56,7 +56,7 @@ fi
 if [ ! -d $directory/freeopcua ]; then
 	cd $directory
 	echo Fetching Free OPCUA library
-	git clone https://github.com/FreeOpcUa/freeopcua.git
+	git clone https://github.com/dianomic/freeopcua.git
 	cd freeopcua
 	mkdir build
 	sed -e 's/option(SSL_SUPPORT_MBEDTLS "Support rsa-oaep password encryption using mbedtls library " ON)/option(SSL_SUPPORT_MBEDTLS "Support rsa-oaep password encryption using mbedtls library " OFF)/' \
