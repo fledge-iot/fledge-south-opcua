@@ -58,7 +58,7 @@ const char *default_config = QUOTE({
 		"description" : "Subscribe using node id",
 		"type" : "boolean",
 		"default" : "true",
-		"displayName" : "Subcribe By ID",
+		"displayName" : "Subscribe By ID",
 		"order" : "4"
 		}
 	});
