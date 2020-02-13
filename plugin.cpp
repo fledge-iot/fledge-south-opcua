@@ -40,7 +40,8 @@ const char *default_config = QUOTE({
 		"type" : "string",
 	       	"default" : "opcua",
 		"displayName" : "Asset Name",
-	       	"order" : "1"
+	       	"order" : "1",
+	       	"mandatory": "true"
 	       	},
 	"url" : { "description" : "URL of the OPC UA Server",
 		"type" : "string",
