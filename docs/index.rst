@@ -54,17 +54,28 @@ Configuration examples
 
     {"subscriptions":["5:Simulation","2:MyLevel"]}
 
+We subscribe to
+
  - 5:Simulation is a node name under ObjectsNode in namespace 5
+
  - 2:MyLevel is a variable under ObjectsNode in namespace 2
+
 .. code-block:: console
 
     {"subscriptions":["5:Sinusoid1","2:MyLevel","5:Sawtooth1"]}
 
+
+We subscribe to
+
  - 5:Sinusoid1 and 5:Sawtooth1 are variables under ObjectsNode/Simulation in namespace 5
+
  - 2:MyLevel is a variable under ObjectsNode in namespace 2
+
 .. code-block:: console
 
     {"subscriptions":["2:Random.Double","2:Random.Boolean"]}
+
+We subscribe to
 
  - Random.Double and Random.Boolean are variables under ObjectsNode/Demo both in namespace 2
 
