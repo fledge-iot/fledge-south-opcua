@@ -53,10 +53,11 @@ else
 	directory=~
 fi
 
-if [ ! -d $directory/freeopcua ]; then
+#if [ ! -d $directory/freeopcua ]; then
 	cd $directory
 	echo Fetching Free OPCUA library
 	git clone https://github.com/dianomic/freeopcua.git
+	git checkout Kapsch
 	cd freeopcua
 	mkdir build
 	sed -e 's/option(SSL_SUPPORT_MBEDTLS "Support rsa-oaep password encryption using mbedtls library " ON)/option(SSL_SUPPORT_MBEDTLS "Support rsa-oaep password encryption using mbedtls library " OFF)/' \
@@ -73,4 +74,4 @@ if [ ! -d $directory/freeopcua ]; then
 	cd ..
 	echo Set the environment variable FREEOPCUA to `pwd`
 	echo export FREEOPCUA=`pwd`
-fi
+#fi

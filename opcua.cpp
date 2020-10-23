@@ -19,7 +19,7 @@ map<string, bool> subscriptionVariables;
 /**
  * Constructor for the opcua plugin
  */
-OPCUA::OPCUA(const string& url) : m_url(url), m_subscribeById(false), m_connected(false), m_client(NULL)
+OPCUA::OPCUA(const string& url) : m_url(url), m_subscribeById(false), m_connected(false), m_client(NULL), m_subClient(NULL)
 {
 }
 
@@ -28,7 +28,10 @@ OPCUA::OPCUA(const string& url) : m_url(url), m_subscribeById(false), m_connecte
  */
 OPCUA::~OPCUA()
 {
-	delete m_subClient;
+	if (m_subClient)
+	{
+		delete m_subClient;
+	}
 }
 
 /**
@@ -348,6 +351,7 @@ int OPCUA::addSubscribe(const OpcUa::Node& node, bool active)
 	}
 	return 0;
 }
+
 
 /**
  * Starts the plugin
