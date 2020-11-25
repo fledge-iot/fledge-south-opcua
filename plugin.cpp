@@ -201,6 +201,7 @@ void plugin_reconfigure(PLUGIN_HANDLE *handle, string& newConfig)
 ConfigCategory	config("new", newConfig);
 OPCUA		*opcua = (OPCUA *)*handle;
 
+	opcua->stop();
 	if (config.itemExists("url"))
 	{
 		string url = config.getValue("url");
@@ -249,9 +250,8 @@ OPCUA		*opcua = (OPCUA *)*handle;
 			}
 		}
 	}
-
+	opcua->start();
 	Logger::getLogger()->info("UPC UA plugin restart after reconfigure");
-	opcua->restart();
 }
 
 /**

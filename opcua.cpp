@@ -369,6 +369,7 @@ int n_subscriptions = 0;
 
 	m_client = new OpcUa::UaClient(Logger::getLogger());
 	try {
+		m_client->SetSecurityPolicy("sign");
 		m_client->Connect(m_url);
 	} catch (exception &e) {
 		Logger::getLogger()->error("Failed to connect to OPCUA server %s: %s", m_url.c_str(), e.what());
@@ -393,6 +394,7 @@ int n_subscriptions = 0;
 			string subscription = (*it);
 			// Parse out ns=..;s=...
 			size_t sStart = subscription.find("s=");
+			size_t iStart = subscription.find("i=");
 			size_t nsStart = subscription.find("ns=");
 			size_t delim = subscription.find(";");
 
@@ -400,7 +402,7 @@ int n_subscriptions = 0;
 			{
 				sStart = subscription.find("s=", sStart + 1);
 			}
-			if (sStart == string::npos || nsStart == string::npos || delim == string::npos)
+			if ((sStart == string::npos && iStart == string::npos) || nsStart == string::npos || delim == string::npos)
 			{
 				Logger::getLogger()->error(
 					"Malformed subscription string '%s', must be of the form ns=...;s=...",
@@ -409,21 +411,43 @@ int n_subscriptions = 0;
 			}
 			string str;
 			int ns;
-			if (sStart < delim)
-				str = subscription.substr(sStart + 2, delim - (sStart + 2));
-			else if (sStart > delim)
-				str = subscription.substr(sStart + 2);
-			if (nsStart < delim)
-				ns = atoi(subscription.substr(nsStart + 3, delim - (nsStart + 3)).c_str());
-			else if (nsStart > delim)
-				ns = atoi(subscription.substr(nsStart + 3).c_str());
-			try {
-				OpcUa::NodeId nodeid(str, ns);
-				OpcUa::Node node = m_client->GetNode(nodeid);
-				n_subscriptions += addSubscribe(node, true);
-			} catch (...) {
-				Logger::getLogger()->error("Failed to find node ns=%d;s=%s", ns, str.c_str());
+			if (sStart != string::npos)
+			{
+				if (sStart < delim)
+					str = subscription.substr(sStart + 2, delim - (sStart + 2));
+				else if (sStart > delim)
+					str = subscription.substr(sStart + 2);
+				if (nsStart < delim)
+					ns = atoi(subscription.substr(nsStart + 3, delim - (nsStart + 3)).c_str());
+				else if (nsStart > delim)
+					ns = atoi(subscription.substr(nsStart + 3).c_str());
+				try {
+					OpcUa::NodeId nodeid(str, ns);
+					OpcUa::Node node = m_client->GetNode(nodeid);
+					n_subscriptions += addSubscribe(node, true);
+				} catch (...) {
+					Logger::getLogger()->error("Failed to find node ns=%d;s=%s", ns, str.c_str());
+				}
 			}
+			else if (iStart != string::npos)
+			{
+				if (iStart < delim)
+					str = subscription.substr(iStart + 2, delim - (iStart + 2));
+				else if (iStart > delim)
+					str = subscription.substr(iStart + 2);
+				if (nsStart < delim)
+					ns = atoi(subscription.substr(nsStart + 3, delim - (nsStart + 3)).c_str());
+				else if (nsStart > delim)
+					ns = atoi(subscription.substr(nsStart + 3).c_str());
+				try {
+					OpcUa::NodeId nodeid((uint32_t)atoi(str.c_str()), ns);
+					OpcUa::Node node = m_client->GetNode(nodeid);
+					n_subscriptions += addSubscribe(node, true);
+				} catch (...) {
+					Logger::getLogger()->error("Failed to find node ns=%d;i=%s", ns, str.c_str());
+				}
+			}
+
 		}
 	}
 	else
