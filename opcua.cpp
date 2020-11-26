@@ -370,7 +370,6 @@ int n_subscriptions = 0;
 
 	m_client = new OpcUa::UaClient(Logger::getLogger());
 	try {
-		m_client->SetSecurityPolicy("sign");
 		m_client->Connect(m_url);
 	} catch (exception &e) {
 		Logger::getLogger()->error("Failed to connect to OPCUA server %s: %s", m_url.c_str(), e.what());
