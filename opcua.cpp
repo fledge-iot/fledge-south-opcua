@@ -19,7 +19,8 @@ map<string, bool> subscriptionVariables;
 /**
  * Constructor for the opcua plugin
  */
-OPCUA::OPCUA(const string& url) : m_url(url), m_subscribeById(false), m_connected(false), m_client(NULL), m_subClient(NULL)
+OPCUA::OPCUA(const string& url) : m_url(url), m_subscribeById(false),
+	m_connected(false), m_client(NULL), m_subClient(NULL)
 {
 }
 
@@ -405,7 +406,7 @@ int n_subscriptions = 0;
 			if ((sStart == string::npos && iStart == string::npos) || nsStart == string::npos || delim == string::npos)
 			{
 				Logger::getLogger()->error(
-					"Malformed subscription string '%s', must be of the form ns=...;s=...",
+					"Malformed subscription string '%s', must be of the form ns=...;s=... or ns=...;i=...",
 						subscription.c_str());
 				continue;
 			}
@@ -423,6 +424,7 @@ int n_subscriptions = 0;
 					ns = atoi(subscription.substr(nsStart + 3).c_str());
 				try {
 					OpcUa::NodeId nodeid(str, ns);
+					Logger::getLogger()->info("Add string subscription %s", str.c_str());
 					OpcUa::Node node = m_client->GetNode(nodeid);
 					n_subscriptions += addSubscribe(node, true);
 				} catch (...) {
@@ -439,12 +441,16 @@ int n_subscriptions = 0;
 					ns = atoi(subscription.substr(nsStart + 3, delim - (nsStart + 3)).c_str());
 				else if (nsStart > delim)
 					ns = atoi(subscription.substr(nsStart + 3).c_str());
+				uint32_t nodeNum = atoi(str.c_str());
 				try {
-					OpcUa::NodeId nodeid((uint32_t)atoi(str.c_str()), ns);
+					Logger::getLogger()->info("Add integer subscription %d:%d", ns, nodeNum);
+					OpcUa::NodeId nodeid(nodeNum, ns);
 					OpcUa::Node node = m_client->GetNode(nodeid);
 					n_subscriptions += addSubscribe(node, true);
+				} catch (exception& e) {
+					Logger::getLogger()->error("Failed to find node ns=%d;i=%d: %s", ns, nodeNum, e.what());
 				} catch (...) {
-					Logger::getLogger()->error("Failed to find node ns=%d;i=%s", ns, str.c_str());
+					Logger::getLogger()->error("Failed to find node ns=%d;i=%d", ns, nodeNum);
 				}
 			}
 
