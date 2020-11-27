@@ -157,7 +157,23 @@ class OpcUaClient : public OpcUa::SubscriptionHandler
 			}
 
 			std::vector<Datapoint *> points;
-			points.push_back(new Datapoint(node.GetId().GetStringIdentifier(), value));
+			std::string dpname = "Unknown";;
+			try {
+				OpcUa::NodeId id = node.GetId();
+				if (id.IsInteger())
+				{
+					char buf[80];
+					snprintf(buf, sizeof(buf), "%d", id.GetIntegerIdentifier());
+					dpname = buf;
+				}
+				else
+				{
+					dpname = node.GetId().GetStringIdentifier();
+				}
+			} catch (std::exception& e) {
+				Logger::getLogger()->error("No name for data change event: %s", e.what());
+			}
+			points.push_back(new Datapoint(dpname, value));
 			m_opcua->ingest(points);
 		};
 	private:

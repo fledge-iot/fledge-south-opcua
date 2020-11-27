@@ -40,6 +40,7 @@ elif apt --version 2>/dev/null; then
 	echo Installing boost components
 	sudo apt install -y libboost-filesystem-dev
 	sudo apt install -y libboost-program-options-dev
+	sudo apt install -y libmbedtls-dev
 else
 	echo "Requirements cannot be automatically installed, please refer README.rst to install requirements manually"
 fi
@@ -53,13 +54,14 @@ else
 	directory=~
 fi
 
-if [ ! -d $directory/freeopcua ]; then
+#if [ ! -d $directory/freeopcua ]; then
 	cd $directory
 	echo Fetching Free OPCUA library
 	git clone https://github.com/dianomic/freeopcua.git
+	git checkout Kapsch
 	cd freeopcua
 	mkdir build
-	sed -e 's/option(SSL_SUPPORT_MBEDTLS "Support rsa-oaep password encryption using mbedtls library " ON)/option(SSL_SUPPORT_MBEDTLS "Support rsa-oaep password encryption using mbedtls library " OFF)/' \
+	sed \
 		-e 's/add_library(opcuaclient/add_library(opcuaclient STATIC/' \
 		-e 's/add_library(opcuacore/add_library(opcuacore STATIC/' \
 		-e 's/add_library(opcuaprotocol/add_library(opcuaprotocol STATIC/' \
@@ -73,4 +75,4 @@ if [ ! -d $directory/freeopcua ]; then
 	cd ..
 	echo Set the environment variable FREEOPCUA to `pwd`
 	echo export FREEOPCUA=`pwd`
-fi
+#fi
