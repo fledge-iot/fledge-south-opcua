@@ -16,7 +16,7 @@ A south service to collect OPC/UA data is created in the same way as any other s
 
   - Click on the + add icon at the top right of the page
 
-  - Select the OPCUA plugin from the list of plugins you are provided with
+  - Select the *opcua* plugin from the list of plugins you are provided with
 
   - Enter a name for your south service
 
