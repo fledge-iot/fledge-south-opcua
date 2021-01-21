@@ -34,6 +34,7 @@ class OPCUA
 		void		start();
 		void		stop();
 		void		ingest(std::vector<Datapoint *>  points);
+		void		setReportingInterval(long value);
 		void		registerIngest(void *data, void (*cb)(void *, Reading))
 				{
 					m_ingest = cb;
@@ -53,6 +54,7 @@ class OPCUA
 		std::mutex			m_configMutex;
 		bool				m_subscribeById;
 		bool				m_connected;
+		long				m_reportingInterval;
 };
 
 class OpcUaClient : public OpcUa::SubscriptionHandler

@@ -36,6 +36,8 @@ The configuration parameters that can be set on this page are;
 
   - **Subscribe By ID**: This toggle determines if the OPC/UA objects in the subscription are using names to identify the objects in the OPC/UA object hierarchy or using object ID's.
 
+  - **Min Reporting Interval**: This control the minumum interval between reports of data changes in subscrioptions. It sets an upper limit to the rate that data will be ingested into the plugin and is expressed in milliseconds.
+
 Subscriptions
 -------------
 
