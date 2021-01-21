@@ -187,6 +187,7 @@ class OpcUaClient : public OpcUa::SubscriptionHandler
 				{
 					case OpcUa::VariantType::BYTE:
 					case OpcUa::VariantType::SBYTE:
+					case OpcUa::VariantType::DATE_TIME:
 					{
 						std::string sValue = val.ToString();
 						std::string bValue;
