@@ -66,95 +66,205 @@ class OpcUaClient : public OpcUa::SubscriptionHandler
 				const OpcUa::Variant & val,
 				OpcUa::AttributeId attr) override
 		{
+			if (val.IsNul())
+				return;
 			// We don't support non-scalar or Nul values as conversion
 			// to string does not work.
-			if (!val.IsScalar() || val.IsNul())
-			{
-				return;
-			}
-
 			DatapointValue value(0L);
-			switch (val.Type())
+			if (!val.IsScalar())
 			{
-				case OpcUa::VariantType::BYTE:
-				case OpcUa::VariantType::SBYTE:
+				std::vector<double> dvec;
+				switch (val.Type())
 				{
-					std::string sValue = val.ToString();
-					std::string bValue;
-					const char* replaceByte = "\\u%04d";
-					for (size_t i = 0; i < sValue.length(); i++)
+					case OpcUa::VariantType::BYTE:
 					{
-						// Replace not printable char
-						if (!isprint(sValue[i]))
+						std::vector<uint8_t> vec = static_cast<std::vector<uint8_t> >(val);
+						for (int i = 0; i < vec.size(); i++)
 						{
-							char replace[strlen(replaceByte) + 1];
-							snprintf(replace,
-								 strlen(replaceByte) + 1,
-								 replaceByte,
-								 sValue[i]);
-							bValue += replace;
+							double d = vec[i];
+							dvec.push_back(d);
 						}
-						else
-						{
-							bValue += sValue[i];
-						}
+						break;
 					}
-					value = DatapointValue(bValue);
-					break;
+					case OpcUa::VariantType::SBYTE:
+					{
+						std::vector<int8_t> vec = static_cast<std::vector<int8_t> >(val);
+						for (int i = 0; i < vec.size(); i++)
+						{
+							double d = vec[i];
+							dvec.push_back(d);
+						}
+						break;
+					}
+					case OpcUa::VariantType::INT16:
+					{
+						std::vector<int16_t> vec = static_cast<std::vector<int16_t> >(val);
+						for (int i = 0; i < vec.size(); i++)
+						{
+							double d = vec[i];
+							dvec.push_back(d);
+						}
+						break;
+					}
+					case OpcUa::VariantType::UINT16:
+					{
+						std::vector<uint16_t> vec = static_cast<std::vector<uint16_t> >(val);
+						for (int i = 0; i < vec.size(); i++)
+						{
+							double d = vec[i];
+							dvec.push_back(d);
+						}
+						break;
+					}
+					case OpcUa::VariantType::INT32:
+					{
+						std::vector<int32_t> vec = static_cast<std::vector<int32_t> >(val);
+						for (int i = 0; i < vec.size(); i++)
+						{
+							double d = vec[i];
+							dvec.push_back(d);
+						}
+						break;
+					}
+					case OpcUa::VariantType::UINT32:
+					{
+						std::vector<uint32_t> vec = static_cast<std::vector<uint32_t> >(val);
+						for (int i = 0; i < vec.size(); i++)
+						{
+							double d = vec[i];
+							dvec.push_back(d);
+						}
+						break;
+					}
+					case OpcUa::VariantType::INT64:
+					{
+						std::vector<int64_t> vec = static_cast<std::vector<int64_t> >(val);
+						for (int i = 0; i < vec.size(); i++)
+						{
+							double d = vec[i];
+							dvec.push_back(d);
+						}
+						break;
+					}
+					case OpcUa::VariantType::UINT64:
+					{
+						std::vector<uint64_t> vec = static_cast<std::vector<uint64_t> >(val);
+						for (int i = 0; i < vec.size(); i++)
+						{
+							double d = vec[i];
+							dvec.push_back(d);
+						}
+						break;
+					}
+					case OpcUa::VariantType::FLOAT:
+					{
+						std::vector<float> vec = static_cast<std::vector<float> >(val);
+						for (int i = 0; i < vec.size(); i++)
+						{
+							double d = vec[i];
+							dvec.push_back(d);
+						}
+						break;
+					}
+					case OpcUa::VariantType::DOUBLE:
+					{
+						std::vector<double> vec = static_cast<std::vector<double> >(val);
+						for (int i = 0; i < vec.size(); i++)
+						{
+							double d = vec[i];
+							dvec.push_back(d);
+						}
+						break;
+					}
+					default:
+						return;
 				}
-				case OpcUa::VariantType::INT16:
+				value = DatapointValue(dvec);
+			}
+			else
+			{
+				switch (val.Type())
 				{
-					long lval = static_cast<int16_t>(val);
-					value = DatapointValue(lval);
-					break;
-				}
-				case OpcUa::VariantType::UINT16:
-				{
-					long lval = static_cast<uint16_t>(val);
-					value = DatapointValue(lval);
-					break;
-				}
-				case OpcUa::VariantType::INT32:
-				{
-					long lval = static_cast<int32_t>(val);
-					value = DatapointValue(lval);
-					break;
-				}
-				case OpcUa::VariantType::UINT32:
-				{
-					long lval = static_cast<uint32_t>(val);
-					value = DatapointValue(lval);
-					break;
-				}
-				case OpcUa::VariantType::INT64:
-				{
-					long lval = static_cast<int64_t>(val);
-					value = DatapointValue(lval);
-					break;
-				}
-				case OpcUa::VariantType::UINT64:
-				{
-					long lval = static_cast<uint64_t>(val);
-					value = DatapointValue(lval);
-					break;
-				}
-				case OpcUa::VariantType::FLOAT:
-				{
-					double fval = static_cast<float>(val);
-					value = DatapointValue(fval);
-					break;
-				}
-				case OpcUa::VariantType::DOUBLE:
-				{
-					double fval = static_cast<double>(val);
-					value = DatapointValue(fval);
-					break;
-				}
-				default:
-				{
-					std::string sValue = val.ToString();
-					value = DatapointValue(sValue);
-					break;
+					case OpcUa::VariantType::BYTE:
+					case OpcUa::VariantType::SBYTE:
+					{
+						std::string sValue = val.ToString();
+						std::string bValue;
+						const char* replaceByte = "\\u%04d";
+						for (size_t i = 0; i < sValue.length(); i++)
+						{
+							// Replace not printable char
+							if (!isprint(sValue[i]))
+							{
+								char replace[strlen(replaceByte) + 1];
+								snprintf(replace,
+									 strlen(replaceByte) + 1,
+									 replaceByte,
+									 sValue[i]);
+								bValue += replace;
+							}
+							else
+							{
+								bValue += sValue[i];
+							}
+						}
+						value = DatapointValue(bValue);
+						break;
+					}
+					case OpcUa::VariantType::INT16:
+					{
+						long lval = static_cast<int16_t>(val);
+						value = DatapointValue(lval);
+						break;
+					}
+					case OpcUa::VariantType::UINT16:
+					{
+						long lval = static_cast<uint16_t>(val);
+						value = DatapointValue(lval);
+						break;
+					}
+					case OpcUa::VariantType::INT32:
+					{
+						long lval = static_cast<int32_t>(val);
+						value = DatapointValue(lval);
+						break;
+					}
+					case OpcUa::VariantType::UINT32:
+					{
+						long lval = static_cast<uint32_t>(val);
+						value = DatapointValue(lval);
+						break;
+					}
+					case OpcUa::VariantType::INT64:
+					{
+						long lval = static_cast<int64_t>(val);
+						value = DatapointValue(lval);
+						break;
+					}
+					case OpcUa::VariantType::UINT64:
+					{
+						long lval = static_cast<uint64_t>(val);
+						value = DatapointValue(lval);
+						break;
+					}
+					case OpcUa::VariantType::FLOAT:
+					{
+						double fval = static_cast<float>(val);
+						value = DatapointValue(fval);
+						break;
+					}
+					case OpcUa::VariantType::DOUBLE:
+					{
+						double fval = static_cast<double>(val);
+						value = DatapointValue(fval);
+						break;
+					}
+					default:
+					{
+						std::string sValue = val.ToString();
+						value = DatapointValue(sValue);
+						break;
+					}
 				}
 			}
 
