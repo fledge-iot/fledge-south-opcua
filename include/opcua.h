@@ -187,7 +187,6 @@ class OpcUaClient : public OpcUa::SubscriptionHandler
 				{
 					case OpcUa::VariantType::BYTE:
 					case OpcUa::VariantType::SBYTE:
-					case OpcUa::VariantType::DATE_TIME:
 					{
 						std::string sValue = val.ToString();
 						std::string bValue;
@@ -210,6 +209,36 @@ class OpcUaClient : public OpcUa::SubscriptionHandler
 							}
 						}
 						value = DatapointValue(bValue);
+						break;
+					}
+					case OpcUa::VariantType::DATE_TIME:
+					{
+						OpcUa::DateTime timestamp = static_cast<OpcUa::DateTime>(val);
+						int64_t raw = static_cast<int64_t>(timestamp);
+						struct timeval tm;
+						uint64_t micro = raw % 10000000;
+						raw -= micro;
+						raw = raw / 10000000LL;
+						const int64_t daysBetween1601And1970 = 134774;
+						const int64_t secsFrom1601To1970 = daysBetween1601And1970 * 24 * 3600LL;
+						tm.tv_sec = raw - secsFrom1601To1970;
+						tm.tv_usec = micro / 10;
+
+						char date_time[80], usec[10];
+
+						// Populate tm structure with UTC time
+						struct tm timeinfo;
+						gmtime_r(&tm.tv_sec, &timeinfo);
+
+						// Build date_time with format YYYY-MM-DD HH24:MM:SS.MS+00:00
+						// Create datetime with seconds
+						std::strftime(date_time, sizeof(date_time),
+								"%Y-%m-%d %H:%M:%S", &timeinfo);
+						// Add microseconds
+						snprintf(usec, sizeof(usec), ".%06lu", tm.tv_usec);
+						strcat(date_time, usec);
+						strcat(date_time, "+00:00");
+						value = DatapointValue(std::string(date_time));
 						break;
 					}
 					case OpcUa::VariantType::INT16:
