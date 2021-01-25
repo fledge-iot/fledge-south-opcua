@@ -20,7 +20,7 @@ map<string, bool> subscriptionVariables;
  * Constructor for the opcua plugin
  */
 OPCUA::OPCUA(const string& url) : m_url(url), m_subscribeById(false),
-	m_connected(false), m_client(NULL), m_subClient(NULL)
+	m_connected(false), m_client(NULL), m_subClient(NULL), m_reportingInterval(100)
 {
 }
 
@@ -44,6 +44,17 @@ void
 OPCUA::setAssetName(const std::string& asset)
 {
 	m_asset = asset;
+}
+
+/**
+ * Set the minimum interval between data change events for subscriptions
+ *
+ * @param value	Interval in milliseconds
+ */
+void
+OPCUA::setReportingInterval(long value)
+{
+	m_reportingInterval = value;
 }
 
 /**
@@ -381,7 +392,7 @@ int n_subscriptions = 0;
 
 	try {
 		m_subClient = new OpcUaClient(this);
-		m_sub = m_client->CreateSubscription(100, *m_subClient);
+		m_sub = m_client->CreateSubscription(m_reportingInterval, *m_subClient);
 	} catch (exception &e) {
 		Logger::getLogger()->error("Failed to setup subscription infrastructure for OPCUA server %s: %s", m_url.c_str(), e.what());
 		throw e;
