@@ -125,9 +125,15 @@ int OPCUA::addSubscribe(const OpcUa::Node& node, bool active)
 		{
 			// Get ParentName
 			OpcUa::Node parent = node.GetParent();
-			OpcUa::QualifiedName pName = parent.GetBrowseName();
-			// Create key
-			string key = to_string(nName.NamespaceIndex) + ":" + pName.Name + ":" + nName.Name;
+			string key;
+			try {
+				OpcUa::QualifiedName pName = parent.GetBrowseName();
+				// Create key
+				key = to_string(nName.NamespaceIndex) + ":" + pName.Name + ":" + nName.Name;
+			} catch (...) {
+				Logger::getLogger()->warn("Failed to get parent browse name for a variable (%d:%s)", nName.NamespaceIndex, nName.Name.c_str());
+				key = to_string(nName.NamespaceIndex) + ":_:" +  nName.Name;
+			}
 
 			// Add variable if not existant
 			if (subscriptionVariables.find(key) == subscriptionVariables.end())
