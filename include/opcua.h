@@ -186,7 +186,18 @@ class OpcUaClient : public OpcUa::SubscriptionHandler
 				switch (val.Type())
 				{
 					case OpcUa::VariantType::BYTE:
+					{
+						long lval = static_cast<uint8_t>(val);
+						value = DatapointValue(lval);
+						break;
+					}
 					case OpcUa::VariantType::SBYTE:
+					{
+						long lval = static_cast<int8_t>(val);
+						value = DatapointValue(lval);
+						break;
+					}
+#if 0
 					{
 						std::string sValue = val.ToString();
 						std::string bValue;
@@ -211,6 +222,7 @@ class OpcUaClient : public OpcUa::SubscriptionHandler
 						value = DatapointValue(bValue);
 						break;
 					}
+#endif
 					case OpcUa::VariantType::DATE_TIME:
 					{
 						OpcUa::DateTime timestamp = static_cast<OpcUa::DateTime>(val);
