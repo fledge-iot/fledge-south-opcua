@@ -16,7 +16,7 @@ A south service to collect OPC/UA data is created in the same way as any other s
 
   - Click on the + add icon at the top right of the page
 
-  - Select the OPCUA plugin from the list of plugins you are provided with
+  - Select the *opcua* plugin from the list of plugins you are provided with
 
   - Enter a name for your south service
 
@@ -36,6 +36,8 @@ The configuration parameters that can be set on this page are;
 
   - **Subscribe By ID**: This toggle determines if the OPC/UA objects in the subscription are using names to identify the objects in the OPC/UA object hierarchy or using object ID's.
 
+  - **Min Reporting Interval**: This control the minumum interval between reports of data changes in subscrioptions. It sets an upper limit to the rate that data will be ingested into the plugin and is expressed in milliseconds.
+
 Subscriptions
 -------------
 
@@ -43,7 +45,7 @@ Subscriptions to OPC/UA objects are stored as a JSON object that contents an arr
 
 The array may be empty, in which case all variables are subscribed to in the server and will create assets in Fledge. Although simply subscribing to everything will return a lot of data that may not be of use.
 
-If the *Subscribe By ID*  option is set then this is an array of node Id's. Each node Id should be of the form *ns=..;s=...* Where *ns* is a namespace index and *s* is the node id string identifier. A subscription will be created with the OPC/UA server for the object with the specified node id and its children, resulting in data change messages from the server for those objects. Each data change received from the server will create an asset in Fledge with the name of the object prepended by the value set for *Asset Name*.
+If the *Subscribe By ID*  option is set then this is an array of node Id's. Each node Id should be of the form *ns=..;s=...* Where *ns* is a namespace index and *s* is the node id string identifier. A subscription will be created with the OPC/UA server for the object with the specified node id and its children, resulting in data change messages from the server for those objects. Each data change received from the server will create an asset in Fledge with the name of the object prepended by the value set for *Asset Name*. An integer identifier is also supported by using a node Id of the form *ns=...;i=...*.
 
 If the *Subscribe By ID* option is not set then the array is an array of browse names. The format of the browse names is <namespace>:<name>. If the namespace is not required then the name can simply be given, in which case any name that matches in any namespace will have a subscription created. The plugin will traverse the node tree of the server from the *ObjectNodes* root and subscribe to all variables that live below the named nodes in the subscriptions array.
 

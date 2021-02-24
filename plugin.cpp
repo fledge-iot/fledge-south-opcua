@@ -61,6 +61,13 @@ const char *default_config = QUOTE({
 		"default" : "true",
 		"displayName" : "Subscribe By ID",
 		"order" : "4"
+		},
+	"reportingInterval" : {
+		"description" : "The minimum reporting interval for data change notifications" ,
+		"type" : "integer",
+		"default" : "100",
+		"displayName" : "Min Reporting Interval",
+		"order" : "5"
 		}
 	});
 
@@ -118,6 +125,16 @@ string	url;
 	else
 	{
 		opcua->setAssetName("opcua");
+	}
+
+	if (config->itemExists("reportingInterval"))
+	{
+		long val = strtol(config->getValue("reportingInterval").c_str(), NULL, 10);
+		opcua->setReportingInterval(val);
+	}
+	else
+	{
+		opcua->setReportingInterval(100);
 	}
 
 	if (config->itemExists("subscribeById"))
@@ -201,6 +218,7 @@ void plugin_reconfigure(PLUGIN_HANDLE *handle, string& newConfig)
 ConfigCategory	config("new", newConfig);
 OPCUA		*opcua = (OPCUA *)*handle;
 
+	opcua->stop();
 	if (config.itemExists("url"))
 	{
 		string url = config.getValue("url");
@@ -210,6 +228,16 @@ OPCUA		*opcua = (OPCUA *)*handle;
 	if (config.itemExists("asset"))
 	{
 		opcua->setAssetName(config.getValue("asset"));
+	}
+
+	if (config.itemExists("reportingInterval"))
+	{
+		long val = strtol(config.getValue("reportingInterval").c_str(), NULL, 10);
+		opcua->setReportingInterval(val);
+	}
+	else
+	{
+		opcua->setReportingInterval(100);
 	}
 
 	if (config.itemExists("subscribeById"))
@@ -249,9 +277,8 @@ OPCUA		*opcua = (OPCUA *)*handle;
 			}
 		}
 	}
-
+	opcua->start();
 	Logger::getLogger()->info("UPC UA plugin restart after reconfigure");
-	opcua->restart();
 }
 
 /**

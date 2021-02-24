@@ -40,6 +40,7 @@ elif apt --version 2>/dev/null; then
 	echo Installing boost components
 	sudo apt install -y libboost-filesystem-dev
 	sudo apt install -y libboost-program-options-dev
+	sudo apt install -y libmbedtls-dev
 else
 	echo "Requirements cannot be automatically installed, please refer README.rst to install requirements manually"
 fi
@@ -53,24 +54,27 @@ else
 	directory=~
 fi
 
-if [ ! -d $directory/freeopcua ]; then
-	cd $directory
-	echo Fetching Free OPCUA library
-	git clone https://github.com/dianomic/freeopcua.git
-	cd freeopcua
-	mkdir build
-	sed -e 's/option(SSL_SUPPORT_MBEDTLS "Support rsa-oaep password encryption using mbedtls library " ON)/option(SSL_SUPPORT_MBEDTLS "Support rsa-oaep password encryption using mbedtls library " OFF)/' \
-		-e 's/add_library(opcuaclient/add_library(opcuaclient STATIC/' \
-		-e 's/add_library(opcuacore/add_library(opcuacore STATIC/' \
-		-e 's/add_library(opcuaprotocol/add_library(opcuaprotocol STATIC/' \
-		-e 's/add_library(opcuaserver/add_library(opcuaserver STATIC/' \
-		< CMakeLists.txt > CMakeLists.txt.$$ && mv CMakeLists.txt CMakeLists.txt.orig && \
-		mv CMakeLists.txt.$$ CMakeLists.txt
-	cd build
-
-	cmake ..
-	make
-	cd ..
-	echo Set the environment variable FREEOPCUA to `pwd`
-	echo export FREEOPCUA=`pwd`
+cd $directory
+if [ -d freeopcua ]; then
+	rm -rf freeopcua
 fi
+
+echo Fetching Free OPCUA library
+git clone https://github.com/dianomic/freeopcua.git
+git checkout Kapsch
+cd freeopcua
+mkdir build
+sed \
+	-e 's/add_library(opcuaclient/add_library(opcuaclient STATIC/' \
+	-e 's/add_library(opcuacore/add_library(opcuacore STATIC/' \
+	-e 's/add_library(opcuaprotocol/add_library(opcuaprotocol STATIC/' \
+	-e 's/add_library(opcuaserver/add_library(opcuaserver STATIC/' \
+	< CMakeLists.txt > CMakeLists.txt.$$ && mv CMakeLists.txt CMakeLists.txt.orig && \
+	mv CMakeLists.txt.$$ CMakeLists.txt
+cd build
+
+cmake ..
+make
+cd ..
+echo Set the environment variable FREEOPCUA to `pwd`
+echo export FREEOPCUA=`pwd`

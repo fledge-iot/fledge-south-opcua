@@ -19,7 +19,8 @@ map<string, bool> subscriptionVariables;
 /**
  * Constructor for the opcua plugin
  */
-OPCUA::OPCUA(const string& url) : m_url(url), m_subscribeById(false), m_connected(false), m_client(NULL)
+OPCUA::OPCUA(const string& url) : m_url(url), m_subscribeById(false),
+	m_connected(false), m_client(NULL), m_subClient(NULL), m_reportingInterval(100)
 {
 }
 
@@ -28,7 +29,10 @@ OPCUA::OPCUA(const string& url) : m_url(url), m_subscribeById(false), m_connecte
  */
 OPCUA::~OPCUA()
 {
-	delete m_subClient;
+	if (m_subClient)
+	{
+		delete m_subClient;
+	}
 }
 
 /**
@@ -40,6 +44,17 @@ void
 OPCUA::setAssetName(const std::string& asset)
 {
 	m_asset = asset;
+}
+
+/**
+ * Set the minimum interval between data change events for subscriptions
+ *
+ * @param value	Interval in milliseconds
+ */
+void
+OPCUA::setReportingInterval(long value)
+{
+	m_reportingInterval = value;
 }
 
 /**
@@ -349,6 +364,7 @@ int OPCUA::addSubscribe(const OpcUa::Node& node, bool active)
 	return 0;
 }
 
+
 /**
  * Starts the plugin
  *
@@ -376,7 +392,7 @@ int n_subscriptions = 0;
 
 	try {
 		m_subClient = new OpcUaClient(this);
-		m_sub = m_client->CreateSubscription(100, *m_subClient);
+		m_sub = m_client->CreateSubscription(m_reportingInterval, *m_subClient);
 	} catch (exception &e) {
 		Logger::getLogger()->error("Failed to setup subscription infrastructure for OPCUA server %s: %s", m_url.c_str(), e.what());
 		throw e;
@@ -389,6 +405,7 @@ int n_subscriptions = 0;
 			string subscription = (*it);
 			// Parse out ns=..;s=...
 			size_t sStart = subscription.find("s=");
+			size_t iStart = subscription.find("i=");
 			size_t nsStart = subscription.find("ns=");
 			size_t delim = subscription.find(";");
 
@@ -396,30 +413,57 @@ int n_subscriptions = 0;
 			{
 				sStart = subscription.find("s=", sStart + 1);
 			}
-			if (sStart == string::npos || nsStart == string::npos || delim == string::npos)
+			if ((sStart == string::npos && iStart == string::npos) || nsStart == string::npos || delim == string::npos)
 			{
 				Logger::getLogger()->error(
-					"Malformed subscription string '%s', must be of the form ns=...;s=...",
+					"Malformed subscription string '%s', must be of the form ns=...;s=... or ns=...;i=...",
 						subscription.c_str());
 				continue;
 			}
 			string str;
 			int ns;
-			if (sStart < delim)
-				str = subscription.substr(sStart + 2, delim - (sStart + 2));
-			else if (sStart > delim)
-				str = subscription.substr(sStart + 2);
-			if (nsStart < delim)
-				ns = atoi(subscription.substr(nsStart + 3, delim - (nsStart + 3)).c_str());
-			else if (nsStart > delim)
-				ns = atoi(subscription.substr(nsStart + 3).c_str());
-			try {
-				OpcUa::NodeId nodeid(str, ns);
-				OpcUa::Node node = m_client->GetNode(nodeid);
-				n_subscriptions += addSubscribe(node, true);
-			} catch (...) {
-				Logger::getLogger()->error("Failed to find node ns=%d;s=%s", ns, str.c_str());
+			if (sStart != string::npos)
+			{
+				if (sStart < delim)
+					str = subscription.substr(sStart + 2, delim - (sStart + 2));
+				else if (sStart > delim)
+					str = subscription.substr(sStart + 2);
+				if (nsStart < delim)
+					ns = atoi(subscription.substr(nsStart + 3, delim - (nsStart + 3)).c_str());
+				else if (nsStart > delim)
+					ns = atoi(subscription.substr(nsStart + 3).c_str());
+				try {
+					OpcUa::NodeId nodeid(str, ns);
+					Logger::getLogger()->info("Add string subscription %s", str.c_str());
+					OpcUa::Node node = m_client->GetNode(nodeid);
+					n_subscriptions += addSubscribe(node, true);
+				} catch (...) {
+					Logger::getLogger()->error("Failed to find node ns=%d;s=%s", ns, str.c_str());
+				}
 			}
+			else if (iStart != string::npos)
+			{
+				if (iStart < delim)
+					str = subscription.substr(iStart + 2, delim - (iStart + 2));
+				else if (iStart > delim)
+					str = subscription.substr(iStart + 2);
+				if (nsStart < delim)
+					ns = atoi(subscription.substr(nsStart + 3, delim - (nsStart + 3)).c_str());
+				else if (nsStart > delim)
+					ns = atoi(subscription.substr(nsStart + 3).c_str());
+				uint32_t nodeNum = atoi(str.c_str());
+				try {
+					Logger::getLogger()->info("Add integer subscription %d:%d", ns, nodeNum);
+					OpcUa::NodeId nodeid(nodeNum, ns);
+					OpcUa::Node node = m_client->GetNode(nodeid);
+					n_subscriptions += addSubscribe(node, true);
+				} catch (exception& e) {
+					Logger::getLogger()->error("Failed to find node ns=%d;i=%d: %s", ns, nodeNum, e.what());
+				} catch (...) {
+					Logger::getLogger()->error("Failed to find node ns=%d;i=%d", ns, nodeNum);
+				}
+			}
+
 		}
 	}
 	else
