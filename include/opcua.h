@@ -327,7 +327,7 @@ class OpcUaClient : public OpcUa::SubscriptionHandler
 			} catch (std::exception& e) {
 				Logger::getLogger()->error("No name for data change event: %s", e.what());
 			}
-			// Strip " from datapoitn name
+			// Strip " from datapoint name
 			size_t pos;
 			while ((pos = dpname.find_first_of("\"")) != std::string::npos)
 			{
