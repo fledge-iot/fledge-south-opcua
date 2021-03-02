@@ -197,32 +197,6 @@ class OpcUaClient : public OpcUa::SubscriptionHandler
 						value = DatapointValue(lval);
 						break;
 					}
-#if 0
-					{
-						std::string sValue = val.ToString();
-						std::string bValue;
-						const char* replaceByte = "\\u%04d";
-						for (size_t i = 0; i < sValue.length(); i++)
-						{
-							// Replace not printable char
-							if (!isprint(sValue[i]))
-							{
-								char replace[strlen(replaceByte) + 1];
-								snprintf(replace,
-									 strlen(replaceByte) + 1,
-									 replaceByte,
-									 sValue[i]);
-								bValue += replace;
-							}
-							else
-							{
-								bValue += sValue[i];
-							}
-						}
-						value = DatapointValue(bValue);
-						break;
-					}
-#endif
 					case OpcUa::VariantType::DATE_TIME:
 					{
 						OpcUa::DateTime timestamp = static_cast<OpcUa::DateTime>(val);
