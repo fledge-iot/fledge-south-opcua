@@ -186,29 +186,15 @@ class OpcUaClient : public OpcUa::SubscriptionHandler
 				switch (val.Type())
 				{
 					case OpcUa::VariantType::BYTE:
+					{
+						long lval = static_cast<uint8_t>(val);
+						value = DatapointValue(lval);
+						break;
+					}
 					case OpcUa::VariantType::SBYTE:
 					{
-						std::string sValue = val.ToString();
-						std::string bValue;
-						const char* replaceByte = "\\u%04d";
-						for (size_t i = 0; i < sValue.length(); i++)
-						{
-							// Replace not printable char
-							if (!isprint(sValue[i]))
-							{
-								char replace[strlen(replaceByte) + 1];
-								snprintf(replace,
-									 strlen(replaceByte) + 1,
-									 replaceByte,
-									 sValue[i]);
-								bValue += replace;
-							}
-							else
-							{
-								bValue += sValue[i];
-							}
-						}
-						value = DatapointValue(bValue);
+						long lval = static_cast<int8_t>(val);
+						value = DatapointValue(lval);
 						break;
 					}
 					case OpcUa::VariantType::DATE_TIME:
@@ -315,7 +301,7 @@ class OpcUaClient : public OpcUa::SubscriptionHandler
 			} catch (std::exception& e) {
 				Logger::getLogger()->error("No name for data change event: %s", e.what());
 			}
-			// Strip " from datapoitn name
+			// Strip " from datapoint name
 			size_t pos;
 			while ((pos = dpname.find_first_of("\"")) != std::string::npos)
 			{
