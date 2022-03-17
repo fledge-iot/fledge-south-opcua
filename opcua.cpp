@@ -542,11 +542,21 @@ OPCUA::stop()
  * Called when a data changed event is received. This calls back to the south service
  * and adds the points to the readings queue to send.
  *
- * @param points	The points in the reading we must create
+ * @param points	        The points in the reading we must create
+ * @param sourceTimestamp	Timestamp from the OPC UA server Source
  */
-void OPCUA::ingest(vector<Datapoint *>	points)
+void OPCUA::ingest(vector<Datapoint *> & points, OpcUa::DateTime sourceTimestamp)
 {
-string asset = m_asset + points[0]->getName();
+	string asset = m_asset + points[0]->getName();
 
-	(*m_ingest)(m_data, Reading(asset, points));
+	double TimeAsSecondsFloat = ((double) sourceTimestamp) / 1.0E7;		// divide by 100 nanoseconds
+	double integerPart = 0.0;
+	struct timeval tm;
+	tm.tv_sec = OpcUa::DateTime::ToTimeT(sourceTimestamp);
+	tm.tv_usec = (suseconds_t) (1E6 * modf(TimeAsSecondsFloat, &integerPart));	// convert fraction to number of microseconds
+
+	Reading reading(asset, points);
+	reading.setUserTimestamp(tm);
+
+	(*m_ingest)(m_data, reading);
 }

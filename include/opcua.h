@@ -33,7 +33,7 @@ class OPCUA
 		void		subscribeById(bool byId) { m_subscribeById = byId; };
 		void		start();
 		void		stop();
-		void		ingest(std::vector<Datapoint *>  points);
+		void		ingest(std::vector<Datapoint *> & points, OpcUa::DateTime sourceTimestamp);
 		void		setReportingInterval(long value);
 		void		registerIngest(void *data, void (*cb)(void *, Reading))
 				{
@@ -61,11 +61,12 @@ class OpcUaClient : public OpcUa::SubscriptionHandler
 { 
 	public:
 	  	OpcUaClient(OPCUA *opcua) : m_opcua(opcua) {};
-		void DataChange(uint32_t handle,
+		void DataValueChange(uint32_t handle,
 				const OpcUa::Node & node,
-				const OpcUa::Variant & val,
+				const OpcUa::DataValue & dval,
 				OpcUa::AttributeId attr) override
 		{
+			OpcUa::Variant val(dval.Value);
 			if (val.IsNul())
 				return;
 			// We don't support non-scalar or Nul values as conversion
@@ -308,7 +309,7 @@ class OpcUaClient : public OpcUa::SubscriptionHandler
 				dpname.erase(pos, 1);
 			}
 			points.push_back(new Datapoint(dpname, value));
-			m_opcua->ingest(points);
+			m_opcua->ingest(points, dval.SourceTimestamp);
 		};
 	private:
 		OPCUA		*m_opcua;
