@@ -20,7 +20,8 @@ map<string, bool> subscriptionVariables;
  * Constructor for the opcua plugin
  */
 OPCUA::OPCUA(const string& url) : m_url(url), m_subscribeById(false),
-	m_connected(false), m_client(NULL), m_subClient(NULL), m_reportingInterval(100)
+	m_connected(false), m_client(NULL), m_subClient(NULL), m_reportingInterval(100),
+	m_pathDelimiter("/"), m_useBrowseName(false), m_assetNameType(AssetNameType::NodeIdAsName)
 {
 }
 
@@ -44,6 +45,75 @@ void
 OPCUA::setAssetName(const std::string& asset)
 {
 	m_asset = asset;
+}
+
+/**
+ * Set the delimiter for the Asset path name
+ *
+ * @param delimiter Single-character string delimiter between Asset path segments
+ */
+void
+OPCUA::setPathDelimiter(const std::string& delimiter)
+{
+	switch (delimiter.length())
+	{
+		case 0:
+			m_pathDelimiter = "/";
+			break;
+		case 1:
+			m_pathDelimiter = delimiter;
+			break;
+		default:
+			m_pathDelimiter = delimiter.substr(0, 1);
+			break;
+	}
+
+	Logger::getLogger()->debug("Asset Path delimiter set to \"%s\"", m_pathDelimiter.c_str());
+}
+
+/**
+ * Set the node name from the OPC UA Server's namespace to use as the Asset name
+ *
+ * @assetNameSource Type of OPC UA name to use as the Asset Name
+ */
+void
+OPCUA::setAssetNameSource(const std::string& assetNameSource)
+{
+	if (assetNameSource.compare("NodeId") == 0)
+	{
+		m_assetNameType = AssetNameType::NodeIdAsName;
+		m_useBrowseName = false;
+	}
+	else if (assetNameSource.compare("BrowseName") == 0)
+	{
+		m_assetNameType = AssetNameType::BrowseAsName;
+		m_useBrowseName = true;
+	}
+	else if (assetNameSource.compare("Subscription Path with NodeId") == 0)
+	{
+		m_assetNameType = AssetNameType::SubscriptionWithNodeId;
+		m_useBrowseName = false;
+	}
+	else if (assetNameSource.compare("Subscription Path with BrowseName") == 0)
+	{
+		m_assetNameType = AssetNameType::SubscriptionWithBrowseName;
+		m_useBrowseName = true;
+	}
+	else if (assetNameSource.compare("Full Path with NodeId") == 0)
+	{
+		m_assetNameType = AssetNameType::FullPathWithNodeId;
+		m_useBrowseName = false;
+	}
+	else if (assetNameSource.compare("Full Path with BrowseName") == 0)
+	{
+		m_assetNameType = AssetNameType::FullPathWithBrowseName;
+		m_useBrowseName = true;
+	}
+	else
+	{
+		m_assetNameType = AssetNameType::NodeIdAsName;
+		m_useBrowseName = false;
+	}
 }
 
 /**
@@ -78,6 +148,114 @@ OPCUA::addSubscription(const string& parent)
 }
 
 /**
+ * Generate a string representation of a NodeId
+ *
+ * @param node	OPC UA Node
+ * @return		String representation of the Node's NodeId
+ */
+std::string	OPCUA::NodeIdString(const OpcUa::Node& node)
+{
+	OpcUa::NodeId nodeId = node.GetId();
+	
+	// Clear the Index flag in Encoding so 'srv=n' does not appear in the NodeId string
+	nodeId.Encoding = static_cast<OpcUa::NodeIdEncoding>(nodeId.Encoding & ~OpcUa::EV_Server_INDEX_FLAG);
+	
+	std::string nodeIdString = OpcUa::ToString(nodeId);
+	return nodeIdString.substr(0, nodeIdString.length() - 1); // remove trailing ';'
+}
+
+/**
+ * Generate a name for an OPC UA Node depending on the Asset Name Source configuration
+ *
+ * @param node				OPC UA Node
+ * @param subscriptionPath	Full path of the Node in the Subscription hierarchy
+ * @return					String representation of the Node's NodeId
+ */
+std::string	OPCUA::createAssetName(const OpcUa::Node& node, const std::string subscriptionPath)
+{
+	switch (m_assetNameType)
+	{
+		case AssetNameType::SubscriptionWithNodeId:
+		case AssetNameType::SubscriptionWithBrowseName:
+			return subscriptionPath;
+
+		case AssetNameType::FullPathWithNodeId:
+		case AssetNameType::FullPathWithBrowseName:
+		{
+			std::string nodePath;
+			getNodeFullPath(node, nodePath);
+			return nodePath;
+		}
+
+		case AssetNameType::NodeIdAsName:
+		case AssetNameType::BrowseAsName:
+		default:
+			return getNodeName(node);
+	}
+}
+
+/**
+ * Get the full path of the Node by concatentating all parents up to (but not including) the Objects Folder
+ *
+ * @param node			The current node
+ * @param path			Path to the current node
+ */
+void
+OPCUA::getNodeFullPath(const OpcUa::Node& node, std::string& path)
+{
+	static OpcUa::NodeId objectsFolderNodeId = OpcUa::NodeId(OpcUa::ObjectId::ObjectsFolder);
+
+	std::string nodeName = getNodeName(node);
+
+	OpcUa::Node parent = node.GetParent();
+	if (parent.GetId() == objectsFolderNodeId)
+	{
+		path = path.append(nodeName);
+	}
+	else
+	{
+		getNodeFullPath(parent, path);
+		path = path.append(m_pathDelimiter).append(nodeName);
+	}
+}
+
+/**
+ * Generate a short name for an OPC UA Node
+ *
+ * @param node				OPC UA Node
+ * @return					String representation of the Node without a full path
+ */
+std::string	OPCUA::getNodeName(const OpcUa::Node& node)
+{
+	if (m_useBrowseName)
+	{
+		return node.GetBrowseName().Name;
+	}
+	else
+	{
+		return NodeIdString(node);
+	}
+}
+
+/**
+ * Read an Asset Path from the NodeId-to-Path map
+ *
+ * @param nodeId			OPC UA NodeId
+ * @return					Asset Path
+ */
+std::string	OPCUA::getAssetPath(const OpcUa::NodeId& nodeId)
+{
+	try
+	{
+		return m_assetPathNames.at(nodeId);
+	}
+	catch (const std::out_of_range&)
+	{
+		return std::string("");
+	}
+}
+
+/**
  * Restart the OPCUA connection
  */
 void
@@ -92,15 +270,25 @@ OPCUA::restart()
  * The member variable m_subscriptions holds filters that wil be applied to the
  * subscription process. If this is non-empty then it contains a set of strings which
  * are matched against the name of the items in the object tree. Only variables that are in
- * a node that is a desendant of one of these named nodes is added to the subscription list.
+ * a node that is a descendant of one of these named nodes is added to the subscription list.
  *
  * @param	The node to recurse from
  * @active	Should subscriptions be added, i.e. have we satisfied any filtering requirements.
  * @return	The number of subscriptions added
  */
-int OPCUA::addSubscribe(const OpcUa::Node& node, bool active)
+int OPCUA::addSubscribe(const OpcUa::Node& node, std::string& subscriptionParentPath, bool active)
 {
 	int n_subscriptions = 0;
+
+	std::string subscriptionPath;
+	if (subscriptionParentPath.length() == 0)
+	{
+		subscriptionPath = getNodeName(node);
+	}
+	else
+	{
+		subscriptionPath = subscriptionParentPath + m_pathDelimiter + getNodeName(node);
+	}
 
 	try {
 		OpcUa::QualifiedName nName = node.GetBrowseName();
@@ -143,6 +331,8 @@ int OPCUA::addSubscribe(const OpcUa::Node& node, bool active)
 							   "the map, key (%s)",
 				nName.Name.c_str(),
 				key.c_str());
+
+				m_assetPathNames[node.GetId()] = createAssetName(node, subscriptionPath);
 
 				try {
 					m_sub->SubscribeDataChange(node);
@@ -223,7 +413,7 @@ int OPCUA::addSubscribe(const OpcUa::Node& node, bool active)
 				}
 				else if (subName.compare(qName.Name) == 0)
 				{
-					// Check wether to add variable to the map
+					// Check whether to add variable to the map
 					if (subscriptionVariables.find(key) == subscriptionVariables.end())
 					{
 						varMatched = true;
@@ -249,6 +439,9 @@ int OPCUA::addSubscribe(const OpcUa::Node& node, bool active)
 						{
 							Logger::getLogger()->debug("Subscribing to individual variable (%s)",
 										   key.c_str());
+
+							m_assetPathNames[var.GetId()] = createAssetName(var, subscriptionPath);
+						   
 							try {
 								m_sub->SubscribeDataChange(var);
 								n_subscriptions++;
@@ -267,7 +460,7 @@ int OPCUA::addSubscribe(const OpcUa::Node& node, bool active)
 				if (active)
 				{
 					auto it = subscriptionVariables.find(key);
-					// Check wether an existing variable has to be subscribed
+					// Check whether an existing variable has to be subscribed
 					bool subscribeVariable = true;
 					if (it != subscriptionVariables.end())
 					{
@@ -283,7 +476,10 @@ int OPCUA::addSubscribe(const OpcUa::Node& node, bool active)
 						Logger::getLogger()->debug("Subscribing to variable (%s), belonging to (%d:%s)",
 									   qName.Name.c_str(),
 									   qName.NamespaceIndex,
-									   nName.Name.c_str()); 
+									   nName.Name.c_str());
+
+						m_assetPathNames[var.GetId()] = createAssetName(var, subscriptionPath);
+
 						try {
 							m_sub->SubscribeDataChange(var);
 							n_subscriptions++;
@@ -351,7 +547,7 @@ int OPCUA::addSubscribe(const OpcUa::Node& node, bool active)
 			}
 			try {
 				OpcUa::QualifiedName cName = child.GetBrowseName();
-				n_subscriptions += addSubscribe(child, child_active);
+				n_subscriptions += addSubscribe(child, subscriptionPath, child_active);
 			} catch (exception& e) {
 				OpcUa::QualifiedName cName = child.GetBrowseName();
 				Logger::getLogger()->warn("Failed to add subscriptions for child %d:%s, %s",
@@ -384,6 +580,8 @@ OPCUA::start()
 int n_subscriptions = 0;
 
 	subscriptionVariables.clear();
+	m_assetPathNames.clear();
+	std::string subscriptionParentPath;
 
 	m_client = new OpcUa::UaClient(Logger::getLogger());
 	try {
@@ -442,7 +640,7 @@ int n_subscriptions = 0;
 					OpcUa::NodeId nodeid(str, ns);
 					Logger::getLogger()->info("Add string subscription %s", str.c_str());
 					OpcUa::Node node = m_client->GetNode(nodeid);
-					n_subscriptions += addSubscribe(node, true);
+					n_subscriptions += addSubscribe(node, subscriptionParentPath, true);
 				} catch (...) {
 					Logger::getLogger()->error("Failed to find node ns=%d;s=%s", ns, str.c_str());
 				}
@@ -462,7 +660,7 @@ int n_subscriptions = 0;
 					Logger::getLogger()->info("Add integer subscription %d:%d", ns, nodeNum);
 					OpcUa::NodeId nodeid(nodeNum, ns);
 					OpcUa::Node node = m_client->GetNode(nodeid);
-					n_subscriptions += addSubscribe(node, true);
+					n_subscriptions += addSubscribe(node, subscriptionParentPath, true);
 				} catch (exception& e) {
 					Logger::getLogger()->error("Failed to find node ns=%d;i=%d: %s", ns, nodeNum, e.what());
 				} catch (...) {
@@ -491,7 +689,7 @@ int n_subscriptions = 0;
 		Logger::getLogger()->info("Look for variable to subscribe to under ObjectsNode");
 		lock_guard<mutex> guard(m_configMutex);
 		try {
-			n_subscriptions = addSubscribe(m_client->GetObjectsNode(),
+			n_subscriptions = addSubscribe(m_client->GetObjectsNode(), subscriptionParentPath,
 						m_subscriptions.size() == 0 ? true : false);
 		} catch (exception& e) {
 			Logger::getLogger()->error("Failed to create subscriptions from Objects node: %s", e.what());
@@ -505,7 +703,7 @@ int n_subscriptions = 0;
 		{
 			Logger::getLogger()->warn("Look for variable to subscribe to under the root node");
 			try {
-				n_subscriptions != addSubscribe(root, m_subscriptions.size() == 0 ? true : false);
+				n_subscriptions != addSubscribe(root, subscriptionParentPath, m_subscriptions.size() == 0 ? true : false);
 			} catch (exception& e) {
 				Logger::getLogger()->error("Failed to create subscriptions from root node: %s", e.what());
 			}
@@ -530,6 +728,7 @@ OPCUA::stop()
 	if (m_connected)
 	{
 		subscriptionVariables.clear();
+		m_assetPathNames.clear();
 		m_client->Disconnect();
 	}
 	if (m_client)
@@ -543,11 +742,12 @@ OPCUA::stop()
  * and adds the points to the readings queue to send.
  *
  * @param points	        The points in the reading we must create
+ * @param assetPath			Full path to the Asset
  * @param sourceTimestamp	Timestamp from the OPC UA server Source
  */
-void OPCUA::ingest(vector<Datapoint *> & points, OpcUa::DateTime sourceTimestamp)
+void OPCUA::ingest(vector<Datapoint *> & points, const std::string & assetPath, OpcUa::DateTime sourceTimestamp)
 {
-	string asset = m_asset + points[0]->getName();
+	string asset = m_asset + assetPath;
 
 	double TimeAsSecondsFloat = ((double) sourceTimestamp) / 1.0E7;		// divide by 100 nanoseconds
 	double integerPart = 0.0;
