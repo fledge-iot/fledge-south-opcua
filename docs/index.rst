@@ -36,8 +36,8 @@ The configuration parameters that can be set on this page are;
 
   - **Subscribe By ID**: This toggle determines if the OPC/UA objects in the subscription are using names to identify the objects in the OPC/UA object hierarchy or using object ID's.
 
-  - **Asset Name Source**:
-    This drop-down allows you to choose the source of the name for the Asset in Fledge. The choices are:
+  - **Asset Name Source**: This drop-down allows you to choose the source of the name for the Asset in Fledge. The choices are:
+
       - *NodeId*: the Node Id of the OPC UA node. This is the default.
       - *BrowseName*: the Browse Name of the OPC UA node.
       - *Subscription Path with NodeId*: the path to the node in the OPC/UA server's object hierarchy starting with the node specified in *Subscriptions.*
@@ -57,7 +57,7 @@ The configuration parameters that can be set on this page are;
     If multiple characters are specified, the string will be truncated to one character.
     The default is the forward slash ("/").
 
-  - **Min Reporting Interval**: This controls the minumum interval between reports of data changes in subscriptions. It sets an upper limit to the rate that data will be ingested into the plugin and is expressed in milliseconds.
+  - **Min Reporting Interval**: This controls the minimum interval between reports of data changes in subscriptions. It sets an upper limit to the rate that data will be ingested into the plugin and is expressed in milliseconds.
 
 Subscriptions
 -------------
