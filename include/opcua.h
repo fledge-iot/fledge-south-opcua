@@ -18,6 +18,16 @@
 #include <mutex>
 #include <stdlib.h>
 
+enum class AssetNameType
+{
+	NodeIdAsName,
+	BrowseAsName,
+	SubscriptionWithNodeId,
+	SubscriptionWithBrowseName,
+	FullPathWithNodeId,
+	FullPathWithBrowseName
+};
+
 class OpcUaClient;
 
 class OPCUA
@@ -28,12 +38,16 @@ class OPCUA
 		void		clearSubscription();
 		void		addSubscription(const std::string& parent);
 		void		setAssetName(const std::string& name);
+		void		setPathDelimiter(const std::string& delmiter);
+		void		setAssetNameSource(const std::string& assetNameSource);
+		std::string	getAssetPath(const OpcUa::NodeId& nodeId);
+		std::string getNodeName(const OpcUa::Node& node);
 		void		restart();
 		void		newURL(const std::string& url) { m_url = url; };
 		void		subscribeById(bool byId) { m_subscribeById = byId; };
 		void		start();
 		void		stop();
-		void		ingest(std::vector<Datapoint *>  points);
+		void		ingest(std::vector<Datapoint *> & points, const std::string & assetPath, OpcUa::DateTime sourceTimestamp);
 		void		setReportingInterval(long value);
 		void		registerIngest(void *data, void (*cb)(void *, Reading))
 				{
@@ -42,10 +56,11 @@ class OPCUA
 				}
 
 	private:
-		int				addSubscribe(const OpcUa::Node& node, bool active);
+		int					addSubscribe(const OpcUa::Node& node, std::string& subscriptionParentPath, bool active);
 		std::vector<std::string>	m_subscriptions;
 		std::string			m_url;
 		std::string			m_asset;
+		std::string			m_pathDelimiter;
 		OpcUa::UaClient			*m_client;
 		void				(*m_ingest)(void *, Reading);
 		void				*m_data;
@@ -54,18 +69,25 @@ class OPCUA
 		std::mutex			m_configMutex;
 		bool				m_subscribeById;
 		bool				m_connected;
+		bool				m_useBrowseName;
 		long				m_reportingInterval;
+		AssetNameType		m_assetNameType;
+		std::map<OpcUa::NodeId, std::string> m_assetPathNames;
+		std::string			createAssetName(const OpcUa::Node& node, const std::string subscriptionPath);
+		std::string			NodeIdString(const OpcUa::Node& node);
+		void				getNodeFullPath(const OpcUa::Node& node, std::string& fullPath);
 };
 
 class OpcUaClient : public OpcUa::SubscriptionHandler
 { 
 	public:
 	  	OpcUaClient(OPCUA *opcua) : m_opcua(opcua) {};
-		void DataChange(uint32_t handle,
+		void DataValueChange(uint32_t handle,
 				const OpcUa::Node & node,
-				const OpcUa::Variant & val,
+				const OpcUa::DataValue & dval,
 				OpcUa::AttributeId attr) override
 		{
+			OpcUa::Variant val(dval.Value);
 			if (val.IsNul())
 				return;
 			// We don't support non-scalar or Nul values as conversion
@@ -285,30 +307,20 @@ class OpcUaClient : public OpcUa::SubscriptionHandler
 			}
 
 			std::vector<Datapoint *> points;
-			std::string dpname = "Unknown";;
-			try {
-				OpcUa::NodeId id = node.GetId();
-				if (id.IsInteger())
-				{
-					char buf[80];
-					snprintf(buf, sizeof(buf), "%d", id.GetIntegerIdentifier());
-					dpname = buf;
-				}
-				else
-				{
-					dpname = node.GetId().GetStringIdentifier();
-				}
-			} catch (std::exception& e) {
-				Logger::getLogger()->error("No name for data change event: %s", e.what());
+			std::string dpname = m_opcua->getNodeName(node);
+
+			if (dpname.length() == 0) {
+				Logger::getLogger()->error("No name for data change event: %s", m_opcua->getAssetPath(node.GetId()));
 			}
-			// Strip " from datapoint name
+
+			// Strip " from Datapoint name
 			size_t pos;
 			while ((pos = dpname.find_first_of("\"")) != std::string::npos)
 			{
 				dpname.erase(pos, 1);
 			}
 			points.push_back(new Datapoint(dpname, value));
-			m_opcua->ingest(points);
+			m_opcua->ingest(points, m_opcua->getAssetPath(node.GetId()), dval.SourceTimestamp);
 		};
 	private:
 		OPCUA		*m_opcua;

@@ -62,12 +62,33 @@ static const char *default_config = QUOTE({
 		"displayName" : "Subscribe By ID",
 		"order" : "4"
 		},
+	"assetNameType" : {
+		"description" : "Name from the OPC UA Server's namespace to use as the Asset name",
+		"type" : "enumeration",
+		"options" : [
+			"NodeId",
+			"BrowseName",
+			"Subscription Path with NodeId",
+			"Subscription Path with BrowseName",
+			"Full Path with NodeId",
+			"Full Path with BrowseName" ],
+		"displayName" : "Asset Name Source",
+		"default" : "NodeId",
+		"order" : "5"
+		},
+	"pathDelimiter" : {
+		"description" : "Single-character delimiter to use in Asset path names",
+		"type" : "string",
+		"default" : "/",
+		"displayName" : "Asset Path Delimiter",
+		"order" : "6"
+		},
 	"reportingInterval" : {
 		"description" : "The minimum reporting interval for data change notifications" ,
 		"type" : "integer",
 		"default" : "100",
 		"displayName" : "Min Reporting Interval",
-		"order" : "5"
+		"order" : "7"
 		}
 	});
 
@@ -148,6 +169,26 @@ string	url;
 		{
 			opcua->subscribeById(false);
 		}
+	}
+
+	if (config->itemExists("assetNameType"))
+	{
+		string assetNameType = config->getValue("assetNameType");
+		opcua->setAssetNameSource(assetNameType);
+	}
+	else
+	{
+		opcua->setAssetNameSource("");
+	}
+
+	if (config->itemExists("pathDelimiter"))
+	{
+		string pathDelimiter = config->getValue("pathDelimiter");
+		opcua->setPathDelimiter(pathDelimiter);
+	}
+	else
+	{
+		opcua->setPathDelimiter("");
 	}
 
 	// Now add the subscription data
@@ -251,6 +292,26 @@ OPCUA		*opcua = (OPCUA *)*handle;
 		{
 			opcua->subscribeById(false);
 		}
+	}
+
+	if (config.itemExists("assetNameType"))
+	{
+		string assetNameType = config.getValue("assetNameType");
+		opcua->setAssetNameSource(assetNameType);
+	}
+	else
+	{
+		opcua->setAssetNameSource("");
+	}
+
+	if (config.itemExists("pathDelimiter"))
+	{
+		string pathDelimiter = config.getValue("pathDelimiter");
+		opcua->setPathDelimiter(pathDelimiter);
+	}
+	else
+	{
+		opcua->setPathDelimiter("");
 	}
 
 	if (config.itemExists("subscription"))
