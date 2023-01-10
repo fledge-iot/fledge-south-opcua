@@ -20,6 +20,8 @@
 ## Author: Mark Riddoch, Massimiliano Pinto
 ##
 
+set -e
+
 fledge_location=$(pwd)
 os_name=$(grep -o '^NAME=.*' /etc/os-release | cut -f2 -d\" | sed 's/"//g')
 os_version=$(grep -o '^VERSION_ID=.*' /etc/os-release | cut -f2 -d\" | sed 's/"//g')
@@ -27,9 +29,9 @@ echo "Platform is ${os_name}, Version: ${os_version}"
 
 if [[ ( ${os_name} == *"Red Hat"* || ${os_name} == *"CentOS"* ) ]]; then
     echo "Installing boost components..."
-	sudo yum install -y boost-filesystem boost-program-options
+    sudo yum install -y boost-filesystem boost-program-options
 
-	if [[ ${os_version} == *"7"* ]]; then
+    if [[ ${os_version} == *"7"* ]]; then
         echo "Installing development tools 7 components..."
         sudo yum install -y yum-utils
         sudo yum-config-manager --enable rhel-server-rhscl-7-rpms
@@ -39,12 +41,12 @@ if [[ ( ${os_name} == *"Red Hat"* || ${os_name} == *"CentOS"* ) ]]; then
         export CXX=/opt/rh/devtoolset-7/root/usr/bin/g++
     fi
 elif apt --version 2>/dev/null; then
-	echo Installing boost components
-	sudo apt install -y libboost-filesystem-dev
-	sudo apt install -y libboost-program-options-dev
-	sudo apt install -y libmbedtls-dev
+    echo Installing boost components
+    sudo apt install -y libboost-filesystem-dev
+    sudo apt install -y libboost-program-options-dev
+    sudo apt install -y libmbedtls-dev
 else
-	echo "Requirements cannot be automatically installed, please refer README.rst to install requirements manually"
+    echo "Requirements cannot be automatically installed, please refer README.rst to install requirements manually"
 fi
 
 if [[ $# -eq 1 ]]; then
@@ -59,8 +61,8 @@ if [[ -d freeopcua ]]; then rm -rf freeopcua; fi
 
 echo Fetching Free OPCUA library
 git clone https://github.com/dianomic/freeopcua.git
-git checkout Kapsch
 cd freeopcua
+git checkout Kapsch
 mkdir build
 sed \
 	-e 's/add_library(opcuaclient/add_library(opcuaclient STATIC/' \
