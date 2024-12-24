@@ -745,6 +745,9 @@ void OPCUA::stop()
 	{
 		Logger::getLogger()->error("An unknown error occurred during stop.");
 	}
+	
+	m_connected = false;
+	m_client = nullptr;
 }
 
 /**
