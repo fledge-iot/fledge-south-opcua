@@ -722,19 +722,32 @@ int n_subscriptions = 0;
 /**
  * Stop all subscriptions and disconnect from the OPCUA server
  */
-void
-OPCUA::stop()
+void OPCUA::stop()
 {
-	if (m_connected)
+	try
 	{
-		subscriptionVariables.clear();
-		m_assetPathNames.clear();
-		m_client->Disconnect();
+		if (m_connected)
+		{
+			subscriptionVariables.clear();
+			m_assetPathNames.clear();
+			m_client->Disconnect();			
+		}
+		if (m_client)
+		{
+			delete m_client;
+		}
 	}
-	if (m_client)
+	catch (const std::exception& e) 
 	{
-		delete m_client;
+		Logger::getLogger()->error("Error during stop: %s", e.what());
+	} 
+	catch (...) 
+	{
+		Logger::getLogger()->error("An unknown error occurred during stop.");
 	}
+	
+	m_connected = false;
+	m_client = nullptr;
 }
 
 /**
