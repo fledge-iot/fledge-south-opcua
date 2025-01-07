@@ -583,7 +583,7 @@ int n_subscriptions = 0;
 	m_assetPathNames.clear();
 	std::string subscriptionParentPath;
 
-	m_client = new OpcUa::UaClient(Logger::getLogger());
+	m_client = new OpcUa::UaClient(createCustomLogger("custom_logger", spdlog::level::debug));
 	try {
 		m_client->Connect(m_url);
 	} catch (exception &e) {
@@ -772,4 +772,28 @@ void OPCUA::ingest(vector<Datapoint *> & points, const std::string & assetPath, 
 	reading.setUserTimestamp(tm);
 
 	(*m_ingest)(m_data, reading);
+}
+
+/**
+ * @brief Creates and initializes an spdlog logger with a custom LogSink.
+ *
+ * This function creates a logger with a custom LogSink, sets the logger's name,
+ * and configures the desired log level.
+ *
+ * @param logger_name The name of the logger.
+ * @param log_level The minimum log level to be set for the logger.
+ * @return A shared pointer to the created spdlog logger.
+ */
+std::shared_ptr<spdlog::logger> OPCUA::createCustomLogger(const std::string &logger_name, spdlog::level::level_enum log_level)
+{
+	// Create the custom log sink
+	auto logSink = std::make_shared<LogSink>();
+
+	// Create an spdlog logger with the custom sink
+	auto logger = std::make_shared<spdlog::logger>(logger_name, logSink);
+
+	// Set the log level
+	logger->set_level(log_level);
+
+	return logger;
 }
