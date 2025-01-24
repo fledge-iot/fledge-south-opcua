@@ -134,7 +134,7 @@ string	url;
 	}
 	else
 	{
-		Logger::getLogger()->fatal("UPC UA plugin is missing a URL");
+		Logger::getLogger()->fatal("OPC UA plugin is missing a URL");
 		throw exception();
 	}
 
@@ -207,7 +207,7 @@ string	url;
 		}
 		else
 		{
-			Logger::getLogger()->fatal("UPC UA plugin is missing a subscriptions array");
+			Logger::getLogger()->fatal("OPC UA plugin is missing a subscriptions array");
 			throw exception();
 		}
 	}
@@ -231,7 +231,7 @@ OPCUA *opcua = (OPCUA *)handle;
 	}
 	catch(const std::exception& e)
 	{
-		Logger::getLogger()->error("Failed while starting connection with OPCUA server");
+		Logger::getLogger()->error("Failed while starting connection with OPC UA server");
 	}
 }
 
@@ -340,7 +340,7 @@ OPCUA		*opcua = (OPCUA *)*handle;
 			}
 			else
 			{
-				Logger::getLogger()->fatal("UPC UA plugin is missing a subscriptions array");
+				Logger::getLogger()->fatal("OPC UA plugin is missing a subscriptions array");
 				throw exception();
 			}
 		}
@@ -351,9 +351,9 @@ OPCUA		*opcua = (OPCUA *)*handle;
 	}
 	catch(const std::exception& e)
 	{
-		Logger::getLogger()->error("Failed while starting connection with OPCUA server");
+		Logger::getLogger()->error("Failed while starting connection with OPC UA server");
 	}
-	Logger::getLogger()->info("UPC UA plugin restart after reconfigure");
+	Logger::getLogger()->info("OPC UA plugin restart after reconfigure");
 }
 
 /**
