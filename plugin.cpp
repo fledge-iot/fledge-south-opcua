@@ -231,7 +231,6 @@ OPCUA *opcua = (OPCUA *)handle;
 	}
 	catch(const std::exception& e)
 	{
-		Logger::getLogger()->error("Failed while starting connection with OPC UA server");
 	}
 }
 
@@ -351,7 +350,6 @@ OPCUA		*opcua = (OPCUA *)*handle;
 	}
 	catch(const std::exception& e)
 	{
-		Logger::getLogger()->error("Failed while starting connection with OPC UA server");
 	}
 	Logger::getLogger()->info("OPC UA plugin restart after reconfigure");
 }
