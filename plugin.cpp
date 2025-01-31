@@ -231,7 +231,7 @@ OPCUA *opcua = (OPCUA *)handle;
 	}
 	catch(const std::exception& e)
 	{
-		Logger::getLogger()->debug("Unhandled execption");
+		Logger::getLogger()->debug("Unhandled execption: %s",e.what());
 	}
 }
 
@@ -351,7 +351,7 @@ OPCUA		*opcua = (OPCUA *)*handle;
 	}
 	catch(const std::exception& e)
 	{
-		Logger::getLogger()->debug("Unhandled execption");
+		Logger::getLogger()->debug("Unhandled execption: %s",e.what());
 	}
 	Logger::getLogger()->info("OPC UA plugin restart after reconfigure");
 }
