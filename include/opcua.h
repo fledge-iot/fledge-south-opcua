@@ -13,10 +13,14 @@
 #include <opc/ua/client/client.h>
 #include <opc/ua/node.h>
 #include <opc/ua/subscription.h>
+#include <opc/spdlog/spdlog.h>
+#include <opc/spdlog/sinks/sink.h>
+#include <opc/spdlog/details/log_msg.h>
 #include <reading.h>
 #include <logger.h>
 #include <mutex>
 #include <stdlib.h>
+#include <logger.h>
 
 enum class AssetNameType
 {
@@ -76,6 +80,7 @@ class OPCUA
 		std::string			createAssetName(const OpcUa::Node& node, const std::string subscriptionPath);
 		std::string			NodeIdString(const OpcUa::Node& node);
 		void				getNodeFullPath(const OpcUa::Node& node, std::string& fullPath);
+		std::shared_ptr<spdlog::logger> createCustomLogger(const std::string &logger_name, spdlog::level::level_enum log_level);
 };
 
 class OpcUaClient : public OpcUa::SubscriptionHandler
@@ -324,5 +329,84 @@ class OpcUaClient : public OpcUa::SubscriptionHandler
 		};
 	private:
 		OPCUA		*m_opcua;
+};
+
+/**
+ * @class LogSink
+ * @brief A custom sink for spdlog that routes log messages to a Logger instance.
+ *
+ * This class implements a custom sink for spdlog that directly passes raw log
+ * messages to a custom Logger instance without applying any formatting. Each log
+ * message is routed to the appropriate logging method (e.g., debug, info, warn).
+ */
+class LogSink : public spdlog::sinks::sink
+{
+public:
+	/**
+	 * @brief Constructor for LogSink.
+	 *
+	 * Initializes the LogSink. No additional initialization is required.
+	 */
+	explicit LogSink() {}
+
+	/**
+	 * @brief Destructor for LogSink.
+	 *
+	 * Cleans up any resources used by the LogSink. In this case, no resources
+	 * need to be explicitly released.
+	 */
+	~LogSink() {}
+
+	/**
+	 * @brief Processes a log message and routes it to the Logger.
+	 *
+	 * This method is called by spdlog when a log message is emitted. The log
+	 * message is passed to the appropriate method on the custom Logger instance
+	 * (e.g., debug, info, warn).
+	 *
+	 * @param msg The log message to process.
+	 */
+	void log(const spdlog::details::log_msg &msg) override
+	{
+		spdlog::level::level_enum level = msg.level;
+
+		// Extract the raw log message
+		std::string logMsg(msg.raw.data(), msg.raw.size());
+
+		// Route the raw message to the appropriate Logger method
+		switch (level)
+		{
+		case spdlog::level::trace:
+		case spdlog::level::debug:
+			Logger::getLogger()->debug(logMsg.c_str());
+			break;
+		case spdlog::level::info:
+			Logger::getLogger()->info(logMsg.c_str());
+			break;
+		case spdlog::level::warn:
+			Logger::getLogger()->warn(logMsg.c_str());
+			break;
+		case spdlog::level::err:
+			Logger::getLogger()->error(logMsg.c_str());
+			break;
+		case spdlog::level::critical:
+			Logger::getLogger()->fatal(logMsg.c_str());
+			break;
+		default:
+			Logger::getLogger()->info(logMsg.c_str());
+			break;
+		}
+	}
+
+	/**
+	 * @brief Flushes the sink.
+	 *
+	 * This method is a no-op for the LogSink class because the Logger
+	 * implementation does not require explicit flushing.
+	 */
+	void flush() override
+	{
+		// No explicit flush needed for Logger
+	}
 };
 #endif

@@ -73,7 +73,7 @@ sed \
 	mv CMakeLists.txt.$$ CMakeLists.txt
 cd build
 
-cmake ..
+cmake -G "Unix Makefiles" -DCMAKE_DEPENDS_USE_COMPILER=OFF ..
 make
 cd ..
 echo Set the environment variable FREEOPCUA to $(pwd)
