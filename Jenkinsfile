@@ -1,5 +1,5 @@
 timestamps {
-    node("ubuntu18-agent") {
+    node("ubuntu-agent") {
         def IS_MEMORY_LEAKAGE = 'FALSE'
         catchError {
             checkout scm
